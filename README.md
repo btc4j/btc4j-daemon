@@ -7,12 +7,14 @@ The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
 There are two connection modes:
-* Connect to an already running bitcoind process
+* Connect to a bitcoind process that is already running 
 * Start a bitcoind process and then connect to it 
 
 Using btc4j-daemon
 ------------------
-Snapshot builds are available from GitHub btc4j-repo:
+btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (email@ggonzalez.info).
+
+Maven pom.xml dependency:
 
 		<dependency>
 			<groupId>org.btc4j</groupId>
@@ -20,18 +22,7 @@ Snapshot builds are available from GitHub btc4j-repo:
 			<version>0.0.3-SNAPSHOT</version>
 		</dependency>
 		
-Add the following to your pom.xml:
-
-		<repositories>
-			<repository>
-				<id>btc4j-repo-snapshots</id>
-				<url>https://github.com/btc4j/btc4j-repo/snapshots</url>
-			</repository>
-		</repositories>
-
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
-
-btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (email@ggonzalez.info).
 
 Issues
 ------

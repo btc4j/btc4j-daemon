@@ -6,9 +6,14 @@
 	<artifactId>btc4j-daemon</artifactId>
 	<version>0.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 	<name>btc4j-daemon</name>
 	<url>http://btc4j.github.io/btc4j-daemon</url>
-	<description>Bitcoin Java daemon</description>
+	<description>Bitcoin Java Daemon</description>
 	<inceptionYear>2013</inceptionYear>
 	<organization>
 		<name>btc4j</name>
@@ -37,6 +42,10 @@
 		<system>GitHub</system>
 		<url>https://github.com/btc4j/btc4j-daemon/issues</url>
 	</issueManagement>
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/btc4j/btc4j-daemon</url>
+	</ciManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.version>3.1</maven.compiler.version>
@@ -61,20 +70,6 @@
 						<target>${jdk.version}</target>
 					</configuration>
 				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-	<profiles>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
@@ -115,16 +110,9 @@
 							</execution>
 						</executions>
 					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-	<distributionManagement>
-		<snapshotRepository>
-			<id>btc4j-repo-snapshots</id>
-			<url>https://github.com/btc4j/btc4j-repo/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+			</plugins>
+		</pluginManagement>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>org.btc4j</groupId>
@@ -148,10 +136,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<repositories>
-		<repository>
-			<id>btc4j-repo-snapshots</id>
-			<url>https://github.com/btc4j/btc4j-repo/snapshots</url>
-		</repository>
-	</repositories>
 </project>
