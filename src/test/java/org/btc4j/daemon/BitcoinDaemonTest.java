@@ -49,6 +49,7 @@ import org.junit.Test;
 
 public class BitcoinDaemonTest {
 	private static BitcoinDaemon BITCOIND;
+	private static final boolean BITCOIND_RUN = false;
 	private static final String BITCOIND_ACCOUNT = "user";
 	private static final String BITCOIND_CMD = "bitcoind.exe";
 	private static int BITCOIND_DELAY_MILLIS = 5000;
@@ -59,16 +60,25 @@ public class BitcoinDaemonTest {
 
 	@BeforeClass
 	public static void testSetup() throws Exception {
-		BITCOIND = BitcoinDaemon.runDaemon(new File(BITCOIND_DIR + "/"
-				+ BITCOIND_CMD), true, BITCOIND_ACCOUNT, BITCOIND_PASSWD,
-				BITCOIND_DELAY_MILLIS);
+		if (BITCOIND_RUN) {
+			BITCOIND = BitcoinDaemon.runDaemon(new File(BITCOIND_DIR + "/"
+					+ BITCOIND_CMD), true, BITCOIND_ACCOUNT, BITCOIND_PASSWD,
+					BITCOIND_DELAY_MILLIS);
+		} else {
+			BITCOIND = BitcoinDaemon.connectDaemon(
+					BitcoinDaemonConstant.BTC4J_DAEMON_HOST,
+					BitcoinDaemonConstant.BTC4J_DAEMON_PORT, BITCOIND_ACCOUNT,
+					BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
+		}
 	}
 
 	@AfterClass
 	public static void testCleanup() throws Exception {
-		String stop = BITCOIND.stop();
-		assertNotNull(stop);
-		assertTrue(stop.length() >= 0);
+		if (BITCOIND_RUN) {
+			String stop = BITCOIND.stop();
+			assertNotNull(stop);
+			assertTrue(stop.length() >= 0);
+		}
 	}
 
 	@Test(expected = BitcoinException.class)
@@ -393,7 +403,10 @@ public class BitcoinDaemonTest {
 	public void listSinceBlock() throws BitcoinException {
 		BitcoinLastBlock lastBlock = BITCOIND.listSinceBlock();
 		assertNotNull(lastBlock);
-		lastBlock = BITCOIND.listSinceBlock("00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206", 0);
+		lastBlock = BITCOIND
+				.listSinceBlock(
+						"00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206",
+						0);
 		assertNotNull(lastBlock);
 	}
 

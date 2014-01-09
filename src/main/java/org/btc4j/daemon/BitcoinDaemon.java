@@ -109,7 +109,9 @@ public class BitcoinDaemon implements BitcoinApi {
 				LOGGER.info("attempt " + attempts + " of "
 						+ BitcoinDaemonConstant.BTC4J_DAEMON_CONNECT_ATTEMPTS
 						+ " to ping " + url);
-				Thread.sleep(attempts * timeoutInMillis);
+				if ((attempts == 1) && (bitcoind == null)) {
+					Thread.sleep(attempts * timeoutInMillis);
+				}
 				BitcoinStatus info = daemon.getInformation();
 				if (info != null) {
 					ping = true;
