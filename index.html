@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="btc4j-daemon : Bitcoin Java Daemon" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>btc4j-daemon</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/btc4j/btc4j-daemon">View on GitHub</a>
+
+          <h1 id="project_title">btc4j-daemon</h1>
+          <h2 id="project_tagline">Bitcoin Java Daemon</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/btc4j/btc4j-daemon/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/btc4j/btc4j-daemon/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="bitcoin-java-daemon-btc4j-daemon" class="anchor" href="#bitcoin-java-daemon-btc4j-daemon"><span class="octicon octicon-link"></span></a>Bitcoin Java Daemon (btc4j-daemon)</h1>
+
+<p>Open source Java - bitcoind bridge.</p>
+
+<p>The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:</p>
+
+<ul>
+<li>Apache Commons HttpClient API (org.apache.commons.httpclient)</li>
+<li>Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)</li>
+</ul><p>There are two connection modes:</p>
+
+<ul>
+<li>Connect to an already running bitcoind process</li>
+<li>Start a bitcoind process and then connect to it </li>
+</ul><h2>
+<a name="using-btc4j-daemon" class="anchor" href="#using-btc4j-daemon"><span class="octicon octicon-link"></span></a>Using btc4j-daemon</h2>
+
+<p>Snapshot builds are available from GitHub btc4j-repo:</p>
+
+<pre><code>    &lt;dependency&gt;
+        &lt;groupId&gt;org.btc4j&lt;/groupId&gt;
+        &lt;artifactId&gt;btc4j-daemon&lt;/artifactId&gt;
+        &lt;version&gt;0.0.3-SNAPSHOT&lt;/version&gt;
+    &lt;/dependency&gt;
+</code></pre>
+
+<p>Add the following to your pom.xml:</p>
+
+<pre><code>    &lt;repositories&gt;
+        &lt;repository&gt;
+            &lt;id&gt;btc4j-repo-snapshots&lt;/id&gt;
+            &lt;url&gt;https://github.com/btc4j/btc4j-repo/snapshots&lt;/url&gt;
+        &lt;/repository&gt;
+    &lt;/repositories&gt;
+</code></pre>
+
+<p>Development build status: <a href="https://travis-ci.org/btc4j/btc4j-daemon"><img src="https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master" alt="Build Status"></a></p>
+
+<p>btc4j-daemon is free software under <a href="http://opensource.org/licenses/MIT/" title="The MIT License (MIT)">The MIT License (MIT)</a>. It is maintained by Guillermo Gonzalez (<a href="mailto:email@ggonzalez.info">email@ggonzalez.info</a>).</p>
+
+<h2>
+<a name="issues" class="anchor" href="#issues"><span class="octicon octicon-link"></span></a>Issues</h2>
+
+<p>Report bugs, issues, or suggestions: <a href="https://github.com/btc4j/btc4j-daemon/issues">https://github.com/btc4j/btc4j-daemon/issues</a>.</p>
+
+<h2>
+<a name="contributions" class="anchor" href="#contributions"><span class="octicon octicon-link"></span></a>Contributions</h2>
+
+<p>Project location: <a href="https://github.com/btc4j/btc4j-daemon">https://github.com/btc4j/btc4j-daemon</a>.</p>
+
+<ul>
+<li>git: <code>git@github.com:btc4j/btc4j-daemon.git</code>
+</li>
+<li>svn: <code>https://github.com/btc4j/btc4j-daemon</code>
+</li>
+</ul><h2>
+<a name="donations" class="anchor" href="#donations"><span class="octicon octicon-link"></span></a>Donations</h2>
+
+<p>If you find the software useful and would like to make a donation, please send bitcoins to <code>1ACz6GKw3B6vjoYwGA2hnXDnbR5koFhC4j</code>.</p>
+
+<p>Copyright © 2013, 2014 by Guillermo Gonzalez, btc4j.org.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">btc4j-daemon maintained by <a href="https://github.com/btc4j">btc4j</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-46778161-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
