@@ -10,6 +10,12 @@ There are two connection modes:
 * Connect to a bitcoind process that is already running 
 * Start a bitcoind process and then connect to it 
 
+Development status (out of a total of 59 bitcoind commands):
+* Completed and verified: 31
+* Completed but not verified: 3
+* Work in progress: 3
+* Not yet implemented: 22
+
 Using btc4j-daemon
 ------------------
 btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (email@ggonzalez.info).

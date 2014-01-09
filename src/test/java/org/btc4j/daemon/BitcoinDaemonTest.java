@@ -35,6 +35,7 @@ import org.btc4j.core.BitcoinAccount;
 import org.btc4j.core.BitcoinAddress;
 import org.btc4j.core.BitcoinBlock;
 import org.btc4j.core.BitcoinException;
+import org.btc4j.core.BitcoinLastBlock;
 import org.btc4j.core.BitcoinMining;
 import org.btc4j.core.BitcoinNodeOperationEnum;
 import org.btc4j.core.BitcoinPeer;
@@ -106,10 +107,11 @@ public class BitcoinDaemonTest {
 		BITCOIND.decodeRawTransaction("");
 	}
 
-	@Test(expected = BitcoinException.class)
+	@Test
 	public void dumpPrivateKey() throws BitcoinException {
-		// TODO
-		BITCOIND.dumpPrivateKey("");
+		String privateKey = BITCOIND.dumpPrivateKey(BITCOIND_ADDRESS);
+		assertNotNull(privateKey);
+		assertTrue(privateKey.length() >= 0);
 	}
 
 	@Test(expected = BitcoinException.class)
@@ -324,7 +326,7 @@ public class BitcoinDaemonTest {
 		help = BITCOIND.help("fakecommand");
 		assertNotNull(help);
 		assertTrue(help.length() >= 0);
-		help = BITCOIND.help("listsinceblock");
+		help = BITCOIND.help("getrawtransaction");
 		assertNotNull(help);
 		assertTrue(help.length() >= 0);
 		System.out.println(help);
@@ -387,10 +389,12 @@ public class BitcoinDaemonTest {
 		}
 	}
 
-	@Test(expected = BitcoinException.class)
+	@Test
 	public void listSinceBlock() throws BitcoinException {
-		// TODO
-		BITCOIND.listSinceBlock("00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206", 0);
+		BitcoinLastBlock lastBlock = BITCOIND.listSinceBlock();
+		assertNotNull(lastBlock);
+		lastBlock = BITCOIND.listSinceBlock("00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206", 0);
+		assertNotNull(lastBlock);
 	}
 
 	@Test

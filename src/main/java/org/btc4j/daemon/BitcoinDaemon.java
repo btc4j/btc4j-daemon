@@ -58,6 +58,7 @@ import org.btc4j.core.BitcoinApi;
 import org.btc4j.core.BitcoinBlock;
 import org.btc4j.core.BitcoinConstant;
 import org.btc4j.core.BitcoinException;
+import org.btc4j.core.BitcoinLastBlock;
 import org.btc4j.core.BitcoinMining;
 import org.btc4j.core.BitcoinNodeOperationEnum;
 import org.btc4j.core.BitcoinPeer;
@@ -339,6 +340,26 @@ public class BitcoinDaemon implements BitcoinApi {
 		return block;
 	}
 	
+	protected BitcoinLastBlock jsonBitcoinLastBlock(JsonObject value)
+			throws BitcoinException {
+		BitcoinLastBlock lastBlock = new BitcoinLastBlock();
+		lastBlock.setLastBlock(value.getString(BitcoinDaemonConstant.BTCOBJ_LASTBLOCK_LASTBLOCK, ""));
+		List<BitcoinTransaction> transactions = new ArrayList<BitcoinTransaction>();
+		JsonArray transactionIds = value
+				.getJsonArray(BitcoinDaemonConstant.BTCOBJ_LASTBLOCK_TRANSACTIONS);
+		if (transactionIds != null) {
+			for (JsonString transactionId : transactionIds
+					.getValuesAs(JsonString.class)) {
+				BitcoinTransaction transaction = new BitcoinTransaction();
+				transaction.setTransactionId(transactionId
+						.getString());
+				transactions.add(transaction);
+			}
+		}
+		lastBlock.setTransactions(transactions);
+		return lastBlock;
+	}
+	
 	protected BitcoinMining jsonBitcoinMining(JsonObject value)
 			throws BitcoinException {
 		BitcoinMining info = new BitcoinMining();
@@ -514,10 +535,13 @@ public class BitcoinDaemon implements BitcoinApi {
 
 	@Override
 	public String dumpPrivateKey(String address) throws BitcoinException {
-		// TODO
-		throw new BitcoinException(BitcoinConstant.BTC4J_ERROR_CODE,
-				BitcoinConstant.BTC4J_ERROR_MESSAGE + ": "
-						+ BitcoinConstant.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		if (address == null) {
+			address = "";
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(address).build();
+		JsonString resultss = (JsonString) invoke(
+				BitcoinDaemonConstant.BTCAPI_DUMP_PRIVATE_KEY, parameters);
+		return resultss.getString();
 	}
 
 	@Override
@@ -908,19 +932,23 @@ public class BitcoinDaemon implements BitcoinApi {
 		return addresses;
 	}
 
-	public List<String> listSinceBlock() throws BitcoinException {
+	public BitcoinLastBlock listSinceBlock() throws BitcoinException {
 		return listSinceBlock("", 1);
 	}
 	
 	@Override
-	public List<String> listSinceBlock(String blockHash, int targetConfirms)
+	public BitcoinLastBlock listSinceBlock(String blockHash, int targetConfirms)
 			throws BitcoinException {
-		// TODO
-		// listsinceblock [blockhash] [target-confirmations]
-		// Get all transactions in blocks since block [blockhash], or all transactions if omitted
-		throw new BitcoinException(BitcoinConstant.BTC4J_ERROR_CODE,
-				BitcoinConstant.BTC4J_ERROR_MESSAGE + ": "
-						+ BitcoinConstant.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		if (blockHash == null) {
+			blockHash = "";
+		}
+		if (targetConfirms < 1) {
+			targetConfirms = 1;
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(blockHash).add(targetConfirms)
+				.build();
+		JsonObject results = (JsonObject) invoke(BitcoinDaemonConstant.BTCAPI_LIST_SINCE_BLOCK, parameters);
+		return jsonBitcoinLastBlock(results);
 	}
 
 	public List<String> listTransactions() throws BitcoinException {

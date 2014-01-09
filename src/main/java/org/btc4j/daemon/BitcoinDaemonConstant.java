@@ -109,6 +109,8 @@ public class BitcoinDaemonConstant {
 	public static final String BTCOBJ_BLOCK_DIFFICULTY = "difficulty";
 	public static final String BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH = "previousblockhash";
 	public static final String BTCOBJ_BLOCK_NEXT_BLOCK_HASH = "nextblockhash";
+	public static final String BTCOBJ_LASTBLOCK_LASTBLOCK = "lastblock";
+	public static final String BTCOBJ_LASTBLOCK_TRANSACTIONS = "transactions";
 	public static final String BTCOBJ_INFO_VERSION = "version";
 	public static final String BTCOBJ_INFO_PROTOCOL_VERSION = "protocolversion";
 	public static final String BTCOBJ_INFO_WALLET_VERSION = "walletversion";
