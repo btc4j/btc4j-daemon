@@ -37,7 +37,7 @@ import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMining;
-import org.btc4j.core.BtcNodeOperationEnum;
+import org.btc4j.core.BtcNodeOperation;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcStatus;
 import org.btc4j.core.BtcTransaction;
@@ -88,7 +88,7 @@ public class BtcDaemonTest {
 
 	@Test(expected = BtcException.class)
 	public void addNode() throws BtcException {
-		BITCOIND.addNode("", BtcNodeOperationEnum.ADD);
+		BITCOIND.addNode("", BtcNodeOperation.ADD);
 	}
 
 	@Test

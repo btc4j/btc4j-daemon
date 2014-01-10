@@ -24,6 +24,14 @@
 
 package org.btc4j.daemon;
 
-public enum BtcNotificationEnum {
-	BLOCK, WALLET, ALERT
+public enum BtcNotificationType {
+	BLOCK, WALLET, ALERT;
+	
+	public static BtcNotificationType getValue(String value) {
+		try {
+			return BtcNotificationType.valueOf(value.toUpperCase());
+		} catch (Throwable t) {
+			return null;
+		}
+	}
 }

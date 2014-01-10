@@ -57,6 +57,8 @@ import org.btc4j.core.BtcMining;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcStatus;
 import org.btc4j.core.BtcTransaction;
+import org.btc4j.core.BtcTransactionCategory;
+import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
 
 public class BtcJsonRpcHttpClient {
@@ -326,8 +328,57 @@ public class BtcJsonRpcHttpClient {
 	public BtcTransaction jsonTransaction(JsonObject value)
 			throws BtcException {
 		BtcTransaction transaction = new BtcTransaction();
-		// TODO load transaction and tx details
+		transaction.setTransaction(value.getString(
+				BtcDaemonConstant.BTCOBJ_TX_TRANSACTION, ""));
+		JsonNumber amount = value
+				.getJsonNumber(BtcDaemonConstant.BTCOBJ_TX_AMOUNT);
+		if (amount != null) {
+			transaction.setAmount(amount.doubleValue());
+		}
+		transaction.setConfirmations(value.getInt(
+				BtcDaemonConstant.BTCOBJ_TX_CONFIRMATIONS, 0));
+		transaction.setTime(value.getInt(
+				BtcDaemonConstant.BTCOBJ_TX_TIME, 0));
+		transaction.setTimeReceived(value.getInt(
+				BtcDaemonConstant.BTCOBJ_TX_TIME_RECEIVED, 0));
+		transaction.setTransaction(value.getString(
+				BtcDaemonConstant.BTCOBJ_TX_BLOCK_HASH, ""));
+		transaction.setBlockIndex(value.getInt(
+				BtcDaemonConstant.BTCOBJ_TX_BLOCK_INDEX, 0));
+		transaction.setBlockTime(value.getInt(
+				BtcDaemonConstant.BTCOBJ_TX_BLOCK_TIME, 0));
+		List<BtcTransactionDetail> details = new ArrayList<BtcTransactionDetail>();
+		JsonArray txDetails = (JsonArray) value.get(BtcDaemonConstant.BTCOBJ_TX_DETAILS);
+		if (txDetails != null) {
+			for (JsonObject txDetail : txDetails.getValuesAs(JsonObject.class)) {
+				details.add(jsonTransactionDetail(txDetail));
+			}
+		} else {
+			details.add(jsonTransactionDetail(value));
+		}
+		transaction.setDetails(details);
 		return transaction;
+	}
+	public BtcTransactionDetail jsonTransactionDetail(JsonObject value)
+			throws BtcException {
+		BtcTransactionDetail detail = new BtcTransactionDetail();
+		detail.setAccount(value.getString(
+				BtcDaemonConstant.BTCOBJ_TXDETAIL_ACCOUNT, ""));
+		detail.setAddress(value.getString(
+				BtcDaemonConstant.BTCOBJ_TXDETAIL_ADDRESS, ""));
+		detail.setCategory(BtcTransactionCategory.getValue(value.getString(
+				BtcDaemonConstant.BTCOBJ_TXDETAIL_CATEGORY, "")));
+		JsonNumber amount = value
+				.getJsonNumber(BtcDaemonConstant.BTCOBJ_TXDETAIL_AMOUNT);
+		if (amount != null) {
+			detail.setAmount(amount.doubleValue());
+		}
+		JsonNumber fee = value
+				.getJsonNumber(BtcDaemonConstant.BTCOBJ_TXDETAIL_FEE);
+		if (fee != null) {
+			detail.setFee(amount.doubleValue());
+		}
+		return detail;
 	}
 	
 	public BtcTransactionOutputSet jsonTransactionOutputSet(JsonObject value)

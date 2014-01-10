@@ -33,11 +33,11 @@ public class BtcDaemonNotifier {
 			.getLogger(BtcDaemonNotifier.class.getName());
 
 	public static void main(String[] args) {
-		BtcNotificationEnum notification = BtcNotificationEnum.ALERT;
+		BtcNotificationType notification = BtcNotificationType.ALERT;
 		int port = BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT;
 		String payload = "";
 		try {
-			notification = BtcNotificationEnum.valueOf(args[0]);
+			notification = BtcNotificationType.valueOf(args[0]);
 			port = Integer.parseInt(args[1]);
 			payload = args[2].trim();
 		} catch (Throwable t) {

@@ -48,7 +48,7 @@ import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMining;
-import org.btc4j.core.BtcNodeOperationEnum;
+import org.btc4j.core.BtcNodeOperation;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcStatus;
 import org.btc4j.core.BtcTransaction;
@@ -164,7 +164,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	}
 
 	@Override
-	public void addNode(String node, BtcNodeOperationEnum operation)
+	public void addNode(String node, BtcNodeOperation operation)
 			throws BtcException {
 		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 				BtcException.BTC4J_ERROR_MESSAGE + ": "
