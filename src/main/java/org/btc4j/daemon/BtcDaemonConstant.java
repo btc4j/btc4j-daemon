@@ -24,7 +24,7 @@
 
 package org.btc4j.daemon;
 
-public class BitcoinDaemonConstant {
+public class BtcDaemonConstant {
 	public static final String BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS = "addmultisigaddress";
 	public static final String BTCAPI_ADD_NODE = "addnode";
 	public static final String BTCAPI_BACKUP_WALLET = "backupwallet";
@@ -169,11 +169,17 @@ public class BitcoinDaemonConstant {
 	public static final int BTC4J_DAEMON_CONNECT_ATTEMPTS = 3;
 	public static final String BTC4J_DAEMON_HOST = "127.0.0.1";
 	public static final int BTC4J_DAEMON_PORT = 18332;
-	public static final String BTC4J_DAEMON_ARG_TESTNET = "-testnet=1";
+	public static final String BTC4J_DAEMON_ARG_TESTNET = "-testnet";
 	public static final String BTC4J_DAEMON_ARG_ACCOUNT = "-rpcuser=";
 	public static final String BTC4J_DAEMON_ARG_PASSWORD = "-rpcpassword=";
-	public static final String BTC4J_DAEMON_DATA_NULL_URL = "Server URL is null";
-	public static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "Response is empty";
-	public static final String BTC4J_DAEMON_DATA_INVALID_ID = "Response id does not match request id";
-	public static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "Response error is empty";
+	public static final String BTC4J_DAEMON_ARG_BLOCK_NOTIFY = "-blocknotify=";
+	public static final String BTC4J_DAEMON_ARG_WALLET_NOTIFY = "-walletnotify=";
+	public static final String BTC4J_DAEMON_ARG_ALERT_NOTIFY = "-alertnotify=";
+	public static final String BTC4J_DAEMON_DATA_NULL_URL = "server URL is null";
+	public static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "response is empty";
+	public static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
+	public static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "response error is empty";
+	public static final String BTC4J_DAEMON_NOTIFIER_USAGE = "usage: java BitcoinDaemonNotifier (block|wallet|alert) <port> <message>";
+	public static final int BTC4J_DAEMON_NOTIFIER_PORT = 18334;
+	public static final String BTC4J_DAEMON_NOTIFIER_ERROR = "bitcoin daemon notifier error: ";
 }

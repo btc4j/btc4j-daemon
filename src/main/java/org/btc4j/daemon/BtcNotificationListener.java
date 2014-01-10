@@ -24,7 +24,26 @@
 
 package org.btc4j.daemon;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Observable;
+import java.util.Observer;
+import java.util.logging.Logger;
 
-public class BitcoinDaemonListener extends Observable {
+@SuppressWarnings("unused")
+public class BtcNotificationListener extends Observable {
+	private final static Logger LOGGER = Logger.getLogger(BtcNotificationListener.class
+			.getName());
+	private BtcDaemon daemon;
+	private ServerSocket server;
+	
+	public BtcNotificationListener(BtcDaemon daemon, int port) throws IOException {
+		this.daemon = daemon;
+		server = new ServerSocket(port); 
+	}
+	
+	@Override
+	public synchronized void addObserver(Observer o) {
+		
+	}
 }
