@@ -36,6 +36,8 @@
 
 <p>Open source Java - bitcoind bridge.</p>
 
+<p>Development build status: <a href="https://travis-ci.org/btc4j/btc4j-daemon"><img src="https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master" alt="Build Status"></a></p>
+
 <p>The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:</p>
 
 <ul>
@@ -44,15 +46,22 @@
 </ul><p>There are two connection modes:</p>
 
 <ul>
-<li>Connect to a bitcoind process that is already running </li>
+<li>Connect to a bitcoind process that is already running</li>
 <li>Start a bitcoind process and then connect to it </li>
-</ul><p>Development status (out of a total of 59 bitcoind commands):</p>
+</ul><p>bitcoind API development status (out of a total of 59 commands):</p>
 
 <ul>
-<li>Completed and verified: 31</li>
-<li>Completed but not verified: 3</li>
-<li>Work in progress: 3</li>
-<li>Not yet implemented: 22</li>
+<li>Completed and verified: 34</li>
+<li>Completed but not verified: 1</li>
+<li>Work in progress: 5</li>
+<li>Not yet implemented: 19</li>
+</ul><p>Notification subsytem development status:</p>
+
+<ul>
+<li>Notifier: complete</li>
+<li>Block events: in progress</li>
+<li>Wallet events: in progress</li>
+<li>Alerts: in progress</li>
 </ul><h2>
 <a name="using-btc4j-daemon" class="anchor" href="#using-btc4j-daemon"><span class="octicon octicon-link"></span></a>Using btc4j-daemon</h2>
 
@@ -60,14 +69,22 @@
 
 <p>Maven pom.xml dependency:</p>
 
-<pre><code>    &lt;dependency&gt;
-        &lt;groupId&gt;org.btc4j&lt;/groupId&gt;
-        &lt;artifactId&gt;btc4j-daemon&lt;/artifactId&gt;
-        &lt;version&gt;0.0.3-SNAPSHOT&lt;/version&gt;
-    &lt;/dependency&gt;
-</code></pre>
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>org.btc4j<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>btc4j-daemon<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>0.0.3-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
 
-<p>Development build status: <a href="https://travis-ci.org/btc4j/btc4j-daemon"><img src="https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master" alt="Build Status"></a></p>
+<p>Connect to a bitcoind process:</p>
+
+<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="n">BtcDaemon</span><span class="o">.</span><span class="na">connectDaemon</span><span class="o">(</span><span class="s">"127.0.0.1"</span><span class="o">,</span> <span class="mi">18332</span><span class="o">,</span> <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+</pre></div>
+
+<p>Start a bitcoind process:</p>
+
+<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="n">BtcDaemon</span><span class="o">.</span><span class="na">runDaemon</span><span class="o">(</span><span class="s">"bitcoind"</span><span class="o">,</span> <span class="kc">true</span><span class="o">,</span> <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+</pre></div>
 
 <h2>
 <a name="issues" class="anchor" href="#issues"><span class="octicon octicon-link"></span></a>Issues</h2>
