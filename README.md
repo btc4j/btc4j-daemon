@@ -39,12 +39,12 @@ Maven pom.xml dependency:
 
 Connect to a bitcoind process:
 ```java
-BtcDaemon daemon = BtcDaemon.connectDaemon("127.0.0.1", 18332, "user", "password", 10);
+BtcDaemon daemon = BtcDaemon.connectDaemon("127.0.0.1", 18332, "user", "password", 10000);
 ```
 
 Start a bitcoind process:
 ```java
-BtcDaemon daemon = BtcDaemon.runDaemon("bitcoind", true, "user", "password", 10);
+BtcDaemon daemon = BtcDaemon.runDaemon("bitcoind", true, "user", "password", 10000);
 ```
 
 Issues
