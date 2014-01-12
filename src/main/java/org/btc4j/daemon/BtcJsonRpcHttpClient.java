@@ -254,15 +254,12 @@ public class BtcJsonRpcHttpClient {
 		BtcLastBlock lastBlock = new BtcLastBlock();
 		lastBlock.setLastBlock(value.getString(BtcDaemonConstant.BTCOBJ_LASTBLOCK_LASTBLOCK, ""));
 		List<BtcTransaction> transactions = new ArrayList<BtcTransaction>();
-		JsonArray transactionIds = value
+		JsonArray txs = value
 				.getJsonArray(BtcDaemonConstant.BTCOBJ_LASTBLOCK_TRANSACTIONS);
-		if (transactionIds != null) {
-			for (JsonString transactionId : transactionIds
-					.getValuesAs(JsonString.class)) {
-				BtcTransaction transaction = new BtcTransaction();
-				transaction.setTransaction(transactionId
-						.getString());
-				transactions.add(transaction);
+		if (txs != null) {
+			for (JsonObject tx : txs
+					.getValuesAs(JsonObject.class)) {
+				transactions.add(jsonTransaction(tx));
 			}
 		}
 		lastBlock.setTransactions(transactions);

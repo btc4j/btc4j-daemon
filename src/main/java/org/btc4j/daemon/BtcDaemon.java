@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.json.Json;
@@ -96,9 +94,11 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 				}
 			} catch (BtcException e) {
 				message = e.getMessage();
-				try {
-					Thread.sleep(timeoutInMillis);
-				} catch (InterruptedException ie) {
+				if (attempts < BtcDaemonConstant.BTC4J_DAEMON_CONNECT_ATTEMPTS) {
+					try {
+						Thread.sleep(timeoutInMillis);
+					} catch (InterruptedException ie) {
+					}
 				}
 			}
 		} while (!ping
@@ -455,19 +455,19 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	}
 
 	@Override
-	public String getTransaction(String transactionId) throws BtcException {
-		// TODO
+	public BtcTransaction getTransaction(String transactionId) throws BtcException {
 		if (transactionId == null) {
 			transactionId = "";
 		}
 		JsonArray parameters = Json.createArrayBuilder().add(transactionId)
 				.build();
-		JsonValue results = invoke(BtcDaemonConstant.BTCAPI_GET_TRANSACTION,
+		JsonObject results = (JsonObject) invoke(BtcDaemonConstant.BTCAPI_GET_TRANSACTION,
 				parameters);
-		return String.valueOf(results);
+		return jsonTransaction(results);
 	}
 
 	@Override
+	//TODO
 	public String getTransactionOutput(String transactionId, int n,
 			boolean includeMemoryPool) throws BtcException {
 		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
@@ -504,12 +504,25 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		return results.getString();
 	}
 
+	public String importPrivateKey(String privateKey) throws BtcException {
+		return importPrivateKey(privateKey, "", true);
+	}
+	
 	@Override
+	//TODO
 	public String importPrivateKey(String privateKey, String label,
 			boolean reScan) throws BtcException {
-		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-				BtcException.BTC4J_ERROR_MESSAGE + ": "
-						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		if (privateKey == null) {
+			privateKey = "";
+		}
+		if (label == null) {
+			label = "";
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(privateKey).add(label).add(reScan)
+				.build();
+		JsonValue results = invoke(
+				BtcDaemonConstant.BTCAPI_IMPORT_PRIVATE_KEY, parameters);
+		return String.valueOf(results);
 	}
 
 	@Override
@@ -519,12 +532,12 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
 	}
 
-	public Map<String, BtcAccount> listAccounts() throws BtcException {
+	public List<BtcAccount> listAccounts() throws BtcException {
 		return listAccounts(1);
 	}
 
 	@Override
-	public Map<String, BtcAccount> listAccounts(int minConfirms)
+	public List<BtcAccount> listAccounts(int minConfirms)
 			throws BtcException {
 		if (minConfirms < 1) {
 			minConfirms = 1;
@@ -533,28 +546,38 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 				.build();
 		JsonObject results = (JsonObject) invoke(
 				BtcDaemonConstant.BTCAPI_LIST_ACCOUNTS, parameters);
-		Map<String, BtcAccount> accounts = new HashMap<String, BtcAccount>();
-		for (String account : results.keySet()) {
-			JsonNumber amount = results.getJsonNumber(account);
-			BtcAccount acct = new BtcAccount();
-			acct.setAccount(account);
-			acct.setAmount(amount.doubleValue());
-			accounts.put(account, acct);
+		List<BtcAccount> accounts = new ArrayList<BtcAccount>();
+		for (String result : results.keySet()) {
+			BtcAccount account = new BtcAccount();
+			account.setAccount(result);
+			JsonNumber amount = results.getJsonNumber(result);
+			if (amount != null) {
+				account.setAmount(amount.doubleValue());
+			}
+			accounts.add(account);
 		}
 		return accounts;
 	}
 
-	//TODO fix
 	@Override
-	public List<String> listAddressGroupings() throws BtcException {
-		//{"result":[[["mhkM5pS8Jfot5snS7H4AK2xyRbJ8erUNWc",2.50000000,"user"]],
-		//[["mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD",2.00000000,"user"]]]
+	public List<BtcAddress> listAddressGroupings() throws BtcException {
 		JsonArray results = (JsonArray) invoke(BtcDaemonConstant.BTCAPI_LIST_ADDRESS_GROUPINGS);
-		List<String> groupings = new ArrayList<String>();
-		for (JsonObject grouping : results.getValuesAs(JsonObject.class)) {
-			groupings.add(String.valueOf(grouping));
+		List<BtcAddress> addresses = new ArrayList<BtcAddress>();
+		for (JsonArray groupings : results.getValuesAs(JsonArray.class)) {
+			for (JsonArray grouping : groupings.getValuesAs(JsonArray.class)) {
+				BtcAddress address = new BtcAddress();
+				address.setAddress(grouping.getString(0));
+				JsonNumber amount = grouping.getJsonNumber(1);
+				if (amount != null) {
+					address.setAmount(amount.doubleValue());
+				}
+				BtcAccount account = new BtcAccount();
+				account.setAccount(grouping.getString(2));
+				address.setAccount(account);
+				addresses.add(address);
+			}
 		}
-		return groupings;
+		return addresses;
 	}
 
 	@Override
@@ -611,14 +634,9 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		return listSinceBlock("", 1);
 	}
 	
-	//TODO fix
 	@Override
 	public BtcLastBlock listSinceBlock(String blockHash, int targetConfirms)
 			throws BtcException {
-		//{"result":{"transactions":[
-		//{"account":"user","address":"mhkM5pS8Jfot5snS7H4AK2xyRbJ8erUNWc","category":"receive","amount":2.50000000,"confirmations":242,"blockhash":"0000000000305e245e5c520620495ce59b898333f8dc6718f5292483590419f0","blockindex":2,"blocktime":1389306815,"txid":"5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099","time":1389306815,"timereceived":1389354334},
-		//{"account":"user","address":"mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD","category":"receive","amount":1.00000000,"confirmations":244,"blockhash":"00000000cbe0e6c57353cdfb595ed2f7f920f5a311a29e7451398de24583ee4a","blockindex":1,"blocktime":1389305876,"txid":"98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082","time":1389305876,"timereceived":1389354334},{"account":"user","address":"mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD","category":"receive","amount":1.00000000,"confirmations":68,"blockhash":"0000000000a8fdfe3f8ddaf72f8c892aa79f9d0e40b92887afbcb421c611a3d7","blockindex":1,"blocktime":1389351091,"txid":"c4b386e3f6cff8dd76923288eb3e441774325fb65771e550f933cca30427f3e8","time":1389351091,"timereceived":1389354343}
-		//],"lastblock":"0000000000d90450fccefe79dac5251d74058ff5a8252941eb05e8b44aa2666e"}
 		if (blockHash == null) {
 			blockHash = "";
 		}
@@ -642,7 +660,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public List<BtcTransaction> listTransactions(String account, int count) throws BtcException {
 		return listTransactions(account, count, 0);
 	}
-	//TODO load tx	
+
 	@Override
 	public List<BtcTransaction> listTransactions(String account, int count, int from)
 			throws BtcException {

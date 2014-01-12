@@ -7,14 +7,32 @@ The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
 There are two connection modes:
-* Connect to a bitcoind process that is already running 
+* Connect to a bitcoind process that is already running
+```java
+	public static BtcDaemon connectDaemon(String host, int port,
+			final String account, final String password, int timeoutInMillis)
+			throws BtcException
+```
 * Start a bitcoind process and then connect to it 
+```java
+	public static BtcDaemon runDaemon(File bitcoind, boolean testnet,
+			String account, String password, int timeoutInMillis)
+			throws BtcException
+```
 
-Development status (out of a total of 59 bitcoind commands):
-* Completed and verified: 31
-* Completed but not verified: 3
-* Work in progress: 3
-* Not yet implemented: 22
+bitcoind API development status (out of a total of 59 commands):
+* Completed and verified: 34
+* Completed but not verified: 1
+* Work in progress: 5
+* Not yet implemented: 19
+
+Notification subsytem development status:
+* Notifier: complete
+* Block events: in progress
+* Wallet events: in progress
+* Alerts: in progress
+
+Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
 Using btc4j-daemon
 ------------------
@@ -28,7 +46,18 @@ Maven pom.xml dependency:
 		<version>0.0.3-SNAPSHOT</version>
 	</dependency>
 ```
-Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
+
+Connect to a bitcoind process:
+```java
+	BtcDaemon daemon = BtcDaemon.connectDaemon("127.0.0.1",
+						18332, "user", "password", 10);
+```
+
+Start a bitcoind process:
+```java
+	BtcDaemon daemon = BtcDaemon.runDaemon("bitcoind",
+						true, "user", "password", 10);
+```
 
 Issues
 ------

@@ -37,11 +37,11 @@ public class BtcDaemonNotifier {
 		int port = BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT;
 		String payload = "";
 		try {
-			notification = BtcNotificationType.valueOf(args[0]);
+			notification = BtcNotificationType.getValue(args[0]);
 			port = Integer.parseInt(args[1]);
 			payload = args[2].trim();
 		} catch (Throwable t) {
-			LOGGER.severe(String.valueOf(t));
+			LOGGER.warning(String.valueOf(t));
 			System.err
 					.println(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_USAGE);
 			System.exit(1);
@@ -56,9 +56,7 @@ public class BtcDaemonNotifier {
 					+ BtcDaemonConstant.BTC4J_DAEMON_HOST + ":" + port);
 
 		} catch (Throwable t) {
-			LOGGER.severe(String.valueOf(t));
-			System.err
-					.println(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_ERROR);
+			LOGGER.severe(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_ERROR + t);
 			System.exit(1);
 		}
 		System.exit(0);

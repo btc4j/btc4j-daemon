@@ -29,7 +29,6 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddress;
@@ -41,6 +40,7 @@ import org.btc4j.core.BtcNodeOperation;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcStatus;
 import org.btc4j.core.BtcTransaction;
+import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,6 +57,7 @@ public class BtcDaemonTest {
 	private static final String BITCOIND_PASSWD = "password";
 	private static final String BITCOIND_WALLET = "wallet.dat";
 	private static final String BITCOIND_ADDRESS = "mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD";
+	private static final String BITCOIND_PRIVATE_KEY = "cQ57cLoFkYRSAZJGkYMc8cTCoJhaQVEqSYNuVuUySzuLATFQ4Vcr";
 
 	@BeforeClass
 	public static void testSetup() throws Exception {
@@ -122,11 +123,11 @@ public class BtcDaemonTest {
 		String privateKey = BITCOIND.dumpPrivateKey(BITCOIND_ADDRESS);
 		assertNotNull(privateKey);
 		assertTrue(privateKey.length() >= 0);
+		assertEquals(BITCOIND_PRIVATE_KEY, privateKey);
 	}
 
 	@Test(expected = BtcException.class)
 	public void encryptWallet() throws BtcException {
-		// TODO
 		BITCOIND.encryptWallet("");
 	}
 
@@ -134,7 +135,6 @@ public class BtcDaemonTest {
 	public void getAccount() throws BtcException {
 		String account = BITCOIND.getAccount(BITCOIND_ADDRESS);
 		assertNotNull(account);
-		assertEquals(BITCOIND_ACCOUNT, account);
 	}
 
 	@Test
@@ -154,7 +154,6 @@ public class BtcDaemonTest {
 				.getAddressesByAccount(BITCOIND_ACCOUNT);
 		assertNotNull(addresses);
 		assertTrue(addresses.size() >= 0);
-		assertTrue(addresses.contains(BITCOIND_ADDRESS));
 	}
 
 	@Test
@@ -280,7 +279,6 @@ public class BtcDaemonTest {
 
 	@Test(expected = BtcException.class)
 	public void getRawTransaction() throws BtcException {
-		// TODO
 		BITCOIND.getRawTransaction("", false);
 	}
 
@@ -298,16 +296,18 @@ public class BtcDaemonTest {
 		assertTrue(balance >= 0);
 	}
 
-	@Ignore("Need valid transaction id")
 	@Test
 	public void getTransaction() throws BtcException {
-		// TODO
-		String tx = BITCOIND
-				.getTransaction("f0315ffc38709d70ad5647e22048358dd3745f3ce3874223c80a7c92fab0c8ba");
-		assertNotNull(tx);
-		tx = BITCOIND
-				.getTransaction("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
-		assertNotNull(tx);
+		BtcTransaction transaction = BITCOIND
+				.getTransaction("5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099");
+		assertNotNull(transaction);
+		List<BtcTransactionDetail> details = transaction.getDetails(); 
+		assertNotNull(details);
+		transaction = BITCOIND
+				.getTransaction("98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082");
+		assertNotNull(transaction);
+		details = transaction.getDetails(); 
+		assertNotNull(details);
 	}
 
 	@Test(expected = BtcException.class)
@@ -336,15 +336,18 @@ public class BtcDaemonTest {
 		help = BITCOIND.help("fakecommand");
 		assertNotNull(help);
 		assertTrue(help.length() >= 0);
-		help = BITCOIND.help("getrawtransaction");
+		help = BITCOIND.help("walletlock");
 		assertNotNull(help);
 		assertTrue(help.length() >= 0);
 		System.out.println(help);
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("need wallet password")
+	@Test
 	public void importPrivateKey() throws BtcException {
-		BITCOIND.importPrivateKey("", "", false);
+		//walletpassphrase <passphrase> <timeout>
+		BITCOIND.importPrivateKey(BITCOIND_PRIVATE_KEY, "", false);
+		//walletlock
 	}
 
 	@Test(expected = BtcException.class)
@@ -354,17 +357,24 @@ public class BtcDaemonTest {
 
 	@Test
 	public void listAccounts() throws BtcException {
-		Map<String, BtcAccount> accounts = BITCOIND.listAccounts();
+		List<BtcAccount> accounts = BITCOIND.listAccounts();
 		assertNotNull(accounts);
-		assertTrue(accounts.containsKey(BITCOIND_ACCOUNT));
+		assertTrue(accounts.size() > 0);
+		BtcAccount account = accounts.get(0);
+		assertNotNull(account);
+		assertNotNull(account.getAccount());
 	}
 
-	//TODO fix
-	@Ignore("array vs object")
 	@Test
 	public void listAddressGroupings() throws BtcException {
-		List<String> groupings = BITCOIND.listAddressGroupings();
-		assertNotNull(groupings);
+		List<BtcAddress> addresses = BITCOIND.listAddressGroupings();
+		assertNotNull(addresses);
+		assertTrue(addresses.size() > 0);
+		BtcAddress address = addresses.get(0);
+		assertNotNull(address);
+		BtcAccount account = address.getAccount();
+		assertNotNull(account);
+		assertNotNull(account.getAccount());
 	}
 
 	@Test
@@ -401,8 +411,6 @@ public class BtcDaemonTest {
 		}
 	}
 
-	//TODO fix
-	@Ignore("object vs string")
 	@Test
 	public void listSinceBlock() throws BtcException {
 		BtcLastBlock lastBlock = BITCOIND.listSinceBlock();
@@ -506,7 +514,7 @@ public class BtcDaemonTest {
 		assertTrue(address.isValid());
 		BtcAccount account = address.getAccount();
 		assertNotNull(account);
-		assertEquals(BITCOIND_ACCOUNT, account.getAccount());
+		assertNotNull(account.getAccount());
 		address = BITCOIND.validateAddress("bad address");
 		assertNotNull(address);
 		assertFalse(address.isValid());
