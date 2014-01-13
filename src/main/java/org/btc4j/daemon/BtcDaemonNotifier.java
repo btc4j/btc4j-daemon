@@ -33,13 +33,15 @@ public class BtcDaemonNotifier {
 			.getLogger(BtcDaemonNotifier.class.getName());
 
 	public static void main(String[] args) {
-		BtcNotificationType notification = BtcNotificationType.ALERT;
+		String host = BtcDaemonConstant.BTC4J_DAEMON_HOST;
 		int port = BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT;
+		BtcNotificationType notification = BtcNotificationType.ALERT;
 		String payload = "";
 		try {
-			notification = BtcNotificationType.getValue(args[0]);
+			host = args[0].trim();
 			port = Integer.parseInt(args[1]);
-			payload = args[2].trim();
+			notification = BtcNotificationType.getValue(args[2]);
+			payload = args[3].trim();
 		} catch (Throwable t) {
 			LOGGER.warning(String.valueOf(t));
 			System.err
@@ -47,16 +49,16 @@ public class BtcDaemonNotifier {
 			System.exit(1);
 		}
 		try (Socket socket = new Socket(
-				BtcDaemonConstant.BTC4J_DAEMON_HOST, port);
+				host, port);
 				PrintWriter out = new PrintWriter(socket.getOutputStream(),
 						true);) {
-			String message = notification + "|" + payload;
+			String message = notification + BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_SPLIT + payload;
 			out.println(message);
 			LOGGER.info("sent notification: " + message + " to "
-					+ BtcDaemonConstant.BTC4J_DAEMON_HOST + ":" + port);
+					+ host + ":" + port);
 
 		} catch (Throwable t) {
-			LOGGER.severe(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_ERROR + t);
+			LOGGER.warning(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_ERROR + t);
 			System.exit(1);
 		}
 		System.exit(0);

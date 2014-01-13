@@ -193,7 +193,8 @@ public class BtcDaemonConstant {
 	public static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "response is empty";
 	public static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
 	public static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "response error is empty";
-	public static final String BTC4J_DAEMON_NOTIFIER_USAGE = "usage: java BitcoinDaemonNotifier (block|wallet|alert) <port> <message>";
+	public static final String BTC4J_DAEMON_NOTIFIER_USAGE = "usage: java BitcoinDaemonNotifier <host> <port> (block|wallet|alert) <message>";
 	public static final int BTC4J_DAEMON_NOTIFIER_PORT = 18334;
 	public static final String BTC4J_DAEMON_NOTIFIER_ERROR = "bitcoin daemon notifier error: ";
+	public static final String BTC4J_DAEMON_NOTIFIER_SPLIT = "|";
 }

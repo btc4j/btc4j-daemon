@@ -27,6 +27,7 @@ package org.btc4j.daemon;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,19 +56,23 @@ import org.btc4j.core.BtcTransactionOutputSet;
 public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private final static Logger LOGGER = Logger.getLogger(BtcDaemon.class
 			.getName());
+	private Process bitcoind;
+	private BtcNotificationListener listener;
+	private Thread listenerThread;
 
 	private BtcDaemon(URL url, String account, String password,
-			int timeoutInMillis) {
+			int timeoutInMillis, Process bitcoind) {
 		super(url, account, password, timeoutInMillis);
+		this.bitcoind = bitcoind;
 	}
 
-	private static BtcDaemon makeDaemon(String host, int port,
+	private static BtcDaemon makeDaemon(String host, int daemonPort,
 			String account, String password, int timeoutInMillis,
-			Process bitcoind) throws BtcException {
+			Process bitcoind, ServerSocket notificationServer) throws BtcException {
 		URL url;
 		try {
 			url = new URL(BtcDaemonConstant.BTC4J_DAEMON_HTTP + "://" + host + ":"
-					+ port);
+					+ daemonPort);
 		} catch (MalformedURLException e) {
 			LOGGER.severe(String.valueOf(e));
 			throw new BtcException(
@@ -76,7 +81,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 					e);
 		}
 		BtcDaemon daemon = new BtcDaemon(url, account, password,
-				timeoutInMillis);
+				timeoutInMillis, bitcoind);
 		int attempts = 0;
 		boolean ping = false;
 		String message = "";
@@ -113,30 +118,56 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 					BtcException.BTC4J_ERROR_MESSAGE + ": " + message);
 		}
 		LOGGER.info(message);
+		if (notificationServer != null) {
+			LOGGER.info("starting notification listener");
+			try {
+				BtcNotificationListener listener = new BtcNotificationListener(daemon, notificationServer);
+				daemon.setListener(listener);
+			} catch (Throwable t) {
+				LOGGER.warning("unable to start notification listener " + t);
+			}
+		} else {
+			LOGGER.info("starting without notification listener");
+		}
 		return daemon;
 	}
 
-	public static BtcDaemon connectDaemon(String host, int port,
+	public static BtcDaemon connectDaemon(String host, int daemonPort, int notificationPort, 
 			final String account, final String password, int timeoutInMillis)
 			throws BtcException {
-		return makeDaemon(host, port, account, password, timeoutInMillis, null);
+		ServerSocket serverSocket = null;
+		try {
+			serverSocket = new ServerSocket(notificationPort);
+		} catch (Throwable t) {
+			LOGGER.warning(String.valueOf(t));
+		}
+		return makeDaemon(host, daemonPort, account, password, timeoutInMillis, null, serverSocket);
 	}
 
-	public static BtcDaemon runDaemon(File bitcoind, boolean testnet,
+	public static BtcDaemon runDaemon(File bitcoindCmd, String notificationScript, boolean testnet,
 			String account, String password, int timeoutInMillis)
 			throws BtcException {
 		try {
 			List<String> args = new ArrayList<String>();
-			args.add(bitcoind.getCanonicalPath());
+			args.add(bitcoindCmd.getCanonicalPath());
 			if (testnet) {
 				args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_TESTNET);
 			}
 			args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_ACCOUNT + account);
 			args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_PASSWORD + password);
+			ServerSocket serverSocket = null;
+			if (notificationScript != null) {
+				serverSocket = new ServerSocket(0);
+				String scriptRoot = "\"" + notificationScript + BtcDaemonConstant.BTC4J_DAEMON_HOST + " " + serverSocket.getLocalPort() + " ";
+				args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_BLOCK_NOTIFY + scriptRoot + BtcNotificationType.BLOCK + " %s\"");
+				args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_WALLET_NOTIFY + scriptRoot + BtcNotificationType.WALLET + " %s\"");
+				args.add(BtcDaemonConstant.BTC4J_DAEMON_ARG_ALERT_NOTIFY + scriptRoot + BtcNotificationType.ALERT + " %s\"");
+			}
+			Process bitcoind = new ProcessBuilder(args).start();
 			LOGGER.info("args: " + args);
 			return makeDaemon(BtcDaemonConstant.BTC4J_DAEMON_HOST,
 					BtcDaemonConstant.BTC4J_DAEMON_PORT, account, password,
-					timeoutInMillis, new ProcessBuilder(args).start());
+					timeoutInMillis, bitcoind, serverSocket);
 		} catch (IOException e) {
 			LOGGER.severe(String.valueOf(e));
 			throw new BtcException(
@@ -148,6 +179,41 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 
 	public String[] getSupportedVersions() {
 		return BtcDaemonConstant.BTC4J_DAEMON_VERSIONS;
+	}
+	
+	public BtcNotificationListener getListener() {
+		return listener;
+	}
+	
+	private void setListener(BtcNotificationListener listener) {
+		this.listener = listener;
+		listenerThread = new Thread(listener);
+		listenerThread.start();
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		LOGGER.info("finalizing daemon");
+		if (bitcoind != null) {
+			try {
+				stop();
+			} catch (Throwable t) {
+				LOGGER.warning(String.valueOf(t));
+			}
+			if (bitcoind != null) {
+				bitcoind.destroy();
+			}
+		}
+		if (listenerThread != null) {
+			try {
+				if (!listenerThread.getState().equals(Thread.State.TERMINATED)) {
+					listenerThread.interrupt();
+				}
+			} catch (Throwable t) {
+				LOGGER.warning(String.valueOf(t));
+			}
+		}
+		super.finalize();
 	}
 
 	public void addMultiSignatureAddress(int required, List<String> keys)
@@ -799,6 +865,13 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	@Override
 	public String stop() throws BtcException {
 		JsonString results = (JsonString) invoke(BtcDaemonConstant.BTCAPI_STOP);
+		try {
+			if (listenerThread != null) {
+				listenerThread.interrupt();
+			}
+		} catch (Throwable t) {
+			LOGGER.warning(String.valueOf(t));
+		}
 		return results.getString();
 	}
 

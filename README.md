@@ -44,7 +44,7 @@ BtcDaemon daemon = BtcDaemon.connectDaemon("127.0.0.1", 18332, "user", "password
 
 Start a bitcoind process:
 ```java
-BtcDaemon daemon = BtcDaemon.runDaemon("bitcoind", true, "user", "password", 10000);
+BtcDaemon daemon = BtcDaemon.runDaemon(new File("bitcoind"), true, "user", "password", 10000);
 ```
 
 Issues

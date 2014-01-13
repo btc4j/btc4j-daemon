@@ -29,6 +29,8 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddress;
@@ -49,9 +51,10 @@ import org.junit.Test;
 
 public class BtcDaemonTest {
 	private static BtcDaemon BITCOIND;
-	private static final boolean BITCOIND_RUN = true;
+	private static final boolean BITCOIND_RUN = false;
 	private static final String BITCOIND_ACCOUNT = "user";
 	private static final String BITCOIND_CMD = "bitcoind.exe";
+	private static final String BITCOIND_NOTIFICATION = "java -cp E:\\eclipse\\workspace\\btc4j-daemon\\target\\btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier";
 	private static int BITCOIND_DELAY_MILLIS = 5000;
 	private static final String BITCOIND_DIR = "E:/bitcoin/bitcoind-0.8.6";
 	private static final String BITCOIND_PASSWD = "password";
@@ -63,13 +66,14 @@ public class BtcDaemonTest {
 	public static void testSetup() throws Exception {
 		if (BITCOIND_RUN) {
 			BITCOIND = BtcDaemon.runDaemon(new File(BITCOIND_DIR + "/"
-					+ BITCOIND_CMD), true, BITCOIND_ACCOUNT, BITCOIND_PASSWD,
-					BITCOIND_DELAY_MILLIS);
+					+ BITCOIND_CMD), BITCOIND_NOTIFICATION, true,
+					BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
 		} else {
 			BITCOIND = BtcDaemon.connectDaemon(
 					BtcDaemonConstant.BTC4J_DAEMON_HOST,
-					BtcDaemonConstant.BTC4J_DAEMON_PORT, BITCOIND_ACCOUNT,
-					BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
+					BtcDaemonConstant.BTC4J_DAEMON_PORT,
+					BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT,
+					BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
 		}
 	}
 
@@ -80,6 +84,17 @@ public class BtcDaemonTest {
 			assertNotNull(stop);
 			assertTrue(stop.length() >= 0);
 		}
+	}
+
+	@Test
+	public void notification() throws BtcException, InterruptedException {
+		BITCOIND.getListener().addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object obj) {
+				System.out.println(String.valueOf(obj));
+			}
+		});
+		Thread.sleep(60000);
 	}
 
 	@Test(expected = BtcException.class)
@@ -301,12 +316,12 @@ public class BtcDaemonTest {
 		BtcTransaction transaction = BITCOIND
 				.getTransaction("5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099");
 		assertNotNull(transaction);
-		List<BtcTransactionDetail> details = transaction.getDetails(); 
+		List<BtcTransactionDetail> details = transaction.getDetails();
 		assertNotNull(details);
 		transaction = BITCOIND
 				.getTransaction("98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082");
 		assertNotNull(transaction);
-		details = transaction.getDetails(); 
+		details = transaction.getDetails();
 		assertNotNull(details);
 	}
 
@@ -345,9 +360,9 @@ public class BtcDaemonTest {
 	@Ignore("need wallet password")
 	@Test
 	public void importPrivateKey() throws BtcException {
-		//walletpassphrase <passphrase> <timeout>
+		// walletpassphrase <passphrase> <timeout>
 		BITCOIND.importPrivateKey(BITCOIND_PRIVATE_KEY, "", false);
-		//walletlock
+		// walletlock
 	}
 
 	@Test(expected = BtcException.class)
@@ -424,7 +439,8 @@ public class BtcDaemonTest {
 
 	@Test
 	public void listTransactions() throws BtcException {
-		List<BtcTransaction> transactions = BITCOIND.listTransactions(BITCOIND_ACCOUNT);
+		List<BtcTransaction> transactions = BITCOIND
+				.listTransactions(BITCOIND_ACCOUNT);
 		assertNotNull(transactions);
 		transactions = BITCOIND.listTransactions();
 		assertNotNull(transactions);

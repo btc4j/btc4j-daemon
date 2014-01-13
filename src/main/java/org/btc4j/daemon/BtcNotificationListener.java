@@ -24,26 +24,42 @@
 
 package org.btc4j.daemon;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Observable;
-import java.util.Observer;
 import java.util.logging.Logger;
 
-@SuppressWarnings("unused")
-public class BtcNotificationListener extends Observable {
+public class BtcNotificationListener extends Observable implements Runnable {
 	private final static Logger LOGGER = Logger.getLogger(BtcNotificationListener.class
 			.getName());
+	@SuppressWarnings("unused")
 	private BtcDaemon daemon;
 	private ServerSocket server;
 	
-	public BtcNotificationListener(BtcDaemon daemon, int port) throws IOException {
+	public BtcNotificationListener(BtcDaemon daemon, ServerSocket server) {
 		this.daemon = daemon;
-		server = new ServerSocket(port); 
+		this.server = server; 
 	}
-	
+
 	@Override
-	public synchronized void addObserver(Observer o) {
-		
+	public void run() {
+		while (!Thread.currentThread().isInterrupted()) {
+			try (Socket socket = server.accept();
+					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
+				String line;
+			    if ((line = in.readLine()) != null) {
+			    	socket.close();
+			    	String[] args = line.split(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_SPLIT);
+			    	LOGGER.info("received " + line + " " + args[0] + " " + args[1]);
+			    	setChanged();
+					notifyObservers(args[1]);
+			    }
+			} catch (IOException e) {
+				LOGGER.warning(String.valueOf(e));
+			}
+		}
 	}
 }
