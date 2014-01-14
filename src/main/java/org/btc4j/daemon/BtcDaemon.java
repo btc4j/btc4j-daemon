@@ -119,15 +119,37 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_VALIDATE_ADDRESS = "validateaddress";
 	// private static final String BTCAPI_VERIFY_MESSAGE = "verifymessage";
 	private static final String[] BTC4J_DAEMON_VERSIONS = { "0.8.6" };
+	BtcAlertListener alertListener;
+	BtcBlockListener blockListener;
+	BtcWalletListener walletListener;
 
 	public BtcDaemon(URL url, String account, String password, long timeout) {
 		super(url, account, password, timeout);
+	}
+	
+	public BtcDaemon(URL url, String account, String password, long timeout, int alertPort, int blockPort, int walletPort) {
+		this(url, account, password, timeout);
+		alertListener = new BtcAlertListener(alertPort);
+		blockListener = new BtcBlockListener(blockPort, this);
+		walletListener = new BtcWalletListener(walletPort, this);
 	}
 
 	public String[] getSupportedVersions() {
 		return BTC4J_DAEMON_VERSIONS;
 	}
-
+	
+	public BtcAlertListener getAlertListener() {
+		return alertListener;
+	}
+	
+	public BtcBlockListener getBlockListener() {
+		return blockListener;
+	}
+	
+	public BtcWalletListener getWalletListener() {
+		return walletListener;
+	}
+	
 	public void addMultiSignatureAddress(int required, List<String> keys)
 			throws BtcException {
 		addMultiSignatureAddress(required, keys, "");
@@ -773,10 +795,27 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
 	}
 
+	public String stop(boolean stopDaemon) throws BtcException {
+		if (alertListener != null) {
+			//alertListener.stop();
+		}
+		if (blockListener != null) {
+			//blockListener.stop();
+		}
+		if (walletListener != null) {
+			//walletListener.stop();
+		}
+		if (stopDaemon) {
+			JsonString results = (JsonString) invoke(BTCAPI_STOP);
+			return results.getString();
+		} else {
+			return "Bitcoin daemon stopping";
+		}
+	}
+	
 	@Override
 	public String stop() throws BtcException {
-		JsonString results = (JsonString) invoke(BTCAPI_STOP);
-		return results.getString();
+		return stop(true);
 	}
 
 	@Override

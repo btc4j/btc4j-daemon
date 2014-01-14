@@ -30,6 +30,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+
 import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
@@ -48,28 +52,78 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class BtcDaemonTest {
-	private static BtcDaemon BITCOIND;
 	private static final String BITCOIND_URL = "http://127.0.0.1:18332";
 	private static final String BITCOIND_ACCOUNT = "user";
 	private static final String BITCOIND_PASSWD = "password";
-	private static long BITCOIND_TIMEOUT = 5000;
+	private static final long BITCOIND_TIMEOUT = 5000;
+	private static final int BITCOIND_ALERT_PORT = 18334;
+	private static final int BITCOIND_BLOCK_PORT = 18335;
+	private static final int BITCOIND_WALLET_PORT = 18336;
 	private static final String BITCOIND_DIR = "E:/bitcoin/bitcoind-0.8.6";
 	private static final String BITCOIND_WALLET = "wallet.dat";
 	private static final String BITCOIND_ADDRESS = "mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD";
 	private static final String BITCOIND_PRIVATE_KEY = "cQ57cLoFkYRSAZJGkYMc8cTCoJhaQVEqSYNuVuUySzuLATFQ4Vcr";
+	private static BtcDaemon BITCOIND;
+	private static List<String> ALERT_NOTIFICATIONS = new Vector<String>();
+	private static List<BtcBlock> BLOCK_NOTIFICATIONS = new Vector<BtcBlock>();
+	private static List<BtcTransaction> WALLET_NOTIFICATIONS = new Vector<BtcTransaction>();
+	private static boolean NOTIFIED = false;
 
 	@BeforeClass
-	public static void testSetup() throws Exception {
+	public static void init() throws Exception {
 		BITCOIND = new BtcDaemon(new URL(BITCOIND_URL), BITCOIND_ACCOUNT,
-				BITCOIND_PASSWD, BITCOIND_TIMEOUT);
+				BITCOIND_PASSWD, BITCOIND_TIMEOUT, BITCOIND_ALERT_PORT,
+				BITCOIND_BLOCK_PORT, BITCOIND_WALLET_PORT);
+		BITCOIND.getAlertListener().addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object obj) {
+				ALERT_NOTIFICATIONS.add(String.valueOf(obj));
+				NOTIFIED = true;
+				notifyAll();
+			}
+		});
+		BITCOIND.getBlockListener().addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object obj) {
+				BLOCK_NOTIFICATIONS.add((BtcBlock) obj);
+				NOTIFIED = true;
+				notifyAll();
+			}
+		});
+		BITCOIND.getWalletListener().addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object obj) {
+				WALLET_NOTIFICATIONS.add((BtcTransaction) obj);
+				NOTIFIED = true;
+				notifyAll();
+			}
+		});
 	}
 
-	@Ignore("don't stop")
 	@AfterClass
-	public static void testCleanup() throws Exception {
-		String stop = BITCOIND.stop();
+	public static void cleanUp() throws Exception {
+		String stop = BITCOIND.stop(false);
 		assertNotNull(stop);
 		assertTrue(stop.length() >= 0);
+	}
+
+	@Test
+	public void notifications() {
+		while (!NOTIFIED) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+			}
+		}
+		for (String alert : ALERT_NOTIFICATIONS) {
+			System.out.println("alert: " + alert);
+		}
+		for (BtcBlock block : BLOCK_NOTIFICATIONS) {
+			System.out.println("block: " + block);
+		}
+		for (BtcTransaction transaction : WALLET_NOTIFICATIONS) {
+			System.out.println("transaction: " + transaction);
+		}
 	}
 
 	@Test(expected = BtcException.class)
