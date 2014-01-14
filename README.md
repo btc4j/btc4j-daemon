@@ -1,16 +1,12 @@
 Bitcoin Java Daemon (btc4j-daemon)
 ==================================
-Open source Java - bitcoind bridge.
+Type-safe, open source Java - bitcoind bridge.
 
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
 The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Apache Commons HttpClient API (org.apache.commons.httpclient)
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
-
-There are two connection modes:
-* Connect to a bitcoind process that is already running
-* Start a bitcoind process and then connect to it 
 
 bitcoind API development status (out of a total of 59 commands):
 * Completed and verified: 34
@@ -39,12 +35,7 @@ Maven pom.xml dependency:
 
 Connect to a bitcoind process:
 ```java
-BtcDaemon daemon = BtcDaemon.connectDaemon("127.0.0.1", 18332, "user", "password", 10000);
-```
-
-Start a bitcoind process:
-```java
-BtcDaemon daemon = BtcDaemon.runDaemon(new File("bitcoind"), true, "user", "password", 10000);
+BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"), "user", "password", 30000);
 ```
 
 Issues

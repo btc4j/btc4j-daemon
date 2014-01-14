@@ -33,30 +33,30 @@ import java.util.Observable;
 import java.util.logging.Logger;
 
 public class BtcNotificationListener extends Observable implements Runnable {
-	private final static Logger LOGGER = Logger.getLogger(BtcNotificationListener.class
-			.getName());
+	private final static Logger LOGGER = Logger
+			.getLogger(BtcNotificationListener.class.getName());
 	@SuppressWarnings("unused")
 	private BtcDaemon daemon;
 	private ServerSocket server;
-	
+
 	public BtcNotificationListener(BtcDaemon daemon, ServerSocket server) {
 		this.daemon = daemon;
-		this.server = server; 
+		this.server = server;
 	}
 
 	@Override
 	public void run() {
 		while (!Thread.currentThread().isInterrupted()) {
 			try (Socket socket = server.accept();
-					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
+					BufferedReader in = new BufferedReader(
+							new InputStreamReader(socket.getInputStream()));) {
 				String line;
-			    if ((line = in.readLine()) != null) {
-			    	socket.close();
-			    	String[] args = line.split(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_SPLIT);
-			    	LOGGER.info("received " + line + " " + args[0] + " " + args[1]);
-			    	setChanged();
-					notifyObservers(args[1]);
-			    }
+				if ((line = in.readLine()) != null) {
+					socket.close();
+					LOGGER.info("received " + line);
+					setChanged();
+					notifyObservers(line);
+				}
 			} catch (IOException e) {
 				LOGGER.warning(String.valueOf(e));
 			}

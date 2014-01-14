@@ -31,34 +31,32 @@ import java.util.logging.Logger;
 public class BtcDaemonNotifier {
 	private final static Logger LOGGER = Logger
 			.getLogger(BtcDaemonNotifier.class.getName());
+	private static final String BTC4J_DAEMON_HOST = "127.0.0.1";
+	private static final int BTC4J_DAEMON_ALERT_PORT = 18336;
+	private static final String BTC4J_DAEMON_NOTIFIER_USAGE = "usage: java BitcoinDaemonNotifier <host> <port> <message>";
+	private static final String BTC4J_DAEMON_NOTIFIER_ERROR = "bitcoin daemon notifier error: ";
 
 	public static void main(String[] args) {
-		String host = BtcDaemonConstant.BTC4J_DAEMON_HOST;
-		int port = BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT;
-		BtcNotificationType notification = BtcNotificationType.ALERT;
-		String payload = "";
+		String host = BTC4J_DAEMON_HOST;
+		int port = BTC4J_DAEMON_ALERT_PORT;
+		String message = "";
 		try {
 			host = args[0].trim();
 			port = Integer.parseInt(args[1]);
-			notification = BtcNotificationType.getValue(args[2]);
-			payload = args[3].trim();
+			message = args[2].trim();
 		} catch (Throwable t) {
 			LOGGER.warning(String.valueOf(t));
-			System.err
-					.println(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_USAGE);
+			System.err.println(BTC4J_DAEMON_NOTIFIER_USAGE);
 			System.exit(1);
 		}
-		try (Socket socket = new Socket(
-				host, port);
+		try (Socket socket = new Socket(host, port);
 				PrintWriter out = new PrintWriter(socket.getOutputStream(),
 						true);) {
-			String message = notification + BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_SPLIT + payload;
-			out.println(message);
-			LOGGER.info("sent notification: " + message + " to "
-					+ host + ":" + port);
+			LOGGER.info("sent notification: " + message + " to " + host + ":"
+					+ port);
 
 		} catch (Throwable t) {
-			LOGGER.warning(BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_ERROR + t);
+			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + t);
 			System.exit(1);
 		}
 		System.exit(0);

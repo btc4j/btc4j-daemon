@@ -27,11 +27,9 @@ package org.btc4j.daemon;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
 import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
@@ -51,50 +49,27 @@ import org.junit.Test;
 
 public class BtcDaemonTest {
 	private static BtcDaemon BITCOIND;
-	private static final boolean BITCOIND_RUN = false;
+	private static final String BITCOIND_URL = "http://127.0.0.1:18332";
 	private static final String BITCOIND_ACCOUNT = "user";
-	private static final String BITCOIND_CMD = "bitcoind.exe";
-	private static final String BITCOIND_NOTIFICATION = "java -cp E:\\eclipse\\workspace\\btc4j-daemon\\target\\btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier";
-	private static int BITCOIND_DELAY_MILLIS = 5000;
-	private static final String BITCOIND_DIR = "E:/bitcoin/bitcoind-0.8.6";
 	private static final String BITCOIND_PASSWD = "password";
+	private static long BITCOIND_TIMEOUT = 5000;
+	private static final String BITCOIND_DIR = "E:/bitcoin/bitcoind-0.8.6";
 	private static final String BITCOIND_WALLET = "wallet.dat";
 	private static final String BITCOIND_ADDRESS = "mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD";
 	private static final String BITCOIND_PRIVATE_KEY = "cQ57cLoFkYRSAZJGkYMc8cTCoJhaQVEqSYNuVuUySzuLATFQ4Vcr";
 
 	@BeforeClass
 	public static void testSetup() throws Exception {
-		if (BITCOIND_RUN) {
-			BITCOIND = BtcDaemon.runDaemon(new File(BITCOIND_DIR + "/"
-					+ BITCOIND_CMD), BITCOIND_NOTIFICATION, true,
-					BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
-		} else {
-			BITCOIND = BtcDaemon.connectDaemon(
-					BtcDaemonConstant.BTC4J_DAEMON_HOST,
-					BtcDaemonConstant.BTC4J_DAEMON_PORT,
-					BtcDaemonConstant.BTC4J_DAEMON_NOTIFIER_PORT,
-					BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_DELAY_MILLIS);
-		}
+		BITCOIND = new BtcDaemon(new URL(BITCOIND_URL), BITCOIND_ACCOUNT,
+				BITCOIND_PASSWD, BITCOIND_TIMEOUT);
 	}
 
+	@Ignore("don't stop")
 	@AfterClass
 	public static void testCleanup() throws Exception {
-		if (BITCOIND_RUN) {
-			String stop = BITCOIND.stop();
-			assertNotNull(stop);
-			assertTrue(stop.length() >= 0);
-		}
-	}
-
-	@Test
-	public void notification() throws BtcException, InterruptedException {
-		BITCOIND.getListener().addObserver(new Observer() {
-			@Override
-			public void update(Observable o, Object obj) {
-				System.out.println(String.valueOf(obj));
-			}
-		});
-		Thread.sleep(60000);
+		String stop = BITCOIND.stop();
+		assertNotNull(stop);
+		assertTrue(stop.length() >= 0);
 	}
 
 	@Test(expected = BtcException.class)
