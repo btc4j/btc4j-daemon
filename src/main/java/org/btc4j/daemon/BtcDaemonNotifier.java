@@ -54,7 +54,6 @@ public class BtcDaemonNotifier {
 						true);) {
 			LOGGER.info("sent notification: " + message + " to " + host + ":"
 					+ port);
-
 		} catch (Throwable t) {
 			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + t);
 			System.exit(1);
