@@ -34,20 +34,15 @@
         <h1>
 <a name="bitcoin-java-daemon-btc4j-daemon" class="anchor" href="#bitcoin-java-daemon-btc4j-daemon"><span class="octicon octicon-link"></span></a>Bitcoin Java Daemon (btc4j-daemon)</h1>
 
-<p>Open source Java - bitcoind bridge.</p>
+<p>Type-safe, open source Java - bitcoind bridge.</p>
 
 <p>Development build status: <a href="https://travis-ci.org/btc4j/btc4j-daemon"><img src="https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master" alt="Build Status"></a></p>
 
-<p>The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:</p>
+<p>btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:</p>
 
 <ul>
 <li>Apache Commons HttpClient API (org.apache.commons.httpclient)</li>
 <li>Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)</li>
-</ul><p>There are two connection modes:</p>
-
-<ul>
-<li>Connect to a bitcoind process that is already running</li>
-<li>Start a bitcoind process and then connect to it </li>
 </ul><p>bitcoind API development status (out of a total of 59 commands):</p>
 
 <ul>
@@ -55,13 +50,13 @@
 <li>Completed but not verified: 1</li>
 <li>Work in progress: 5</li>
 <li>Not yet implemented: 19</li>
-</ul><p>Notification subsytem development status:</p>
+</ul><p>Notification subsystem development status:</p>
 
 <ul>
 <li>Notifier: complete</li>
-<li>Block events: in progress</li>
-<li>Wallet events: in progress</li>
-<li>Alerts: in progress</li>
+<li>Alerts: complete</li>
+<li>Block events: complete</li>
+<li>Wallet events: complete</li>
 </ul><h2>
 <a name="using-btc4j-daemon" class="anchor" href="#using-btc4j-daemon"><span class="octicon octicon-link"></span></a>Using btc4j-daemon</h2>
 
@@ -78,13 +73,48 @@
 
 <p>Connect to a bitcoind process:</p>
 
-<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="n">BtcDaemon</span><span class="o">.</span><span class="na">connectDaemon</span><span class="o">(</span><span class="s">"127.0.0.1"</span><span class="o">,</span> <span class="mi">18332</span><span class="o">,</span> <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BtcDaemon</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">"http://127.0.0.1:18332"</span><span class="o">),</span>
+                        <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">30000</span><span class="o">);</span>
+<span class="n">BtcStatus</span> <span class="n">info</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getInfo</span><span class="o">();</span>
+<span class="n">String</span> <span class="n">address</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getAccountAddress</span><span class="o">(</span><span class="s">"user"</span><span class="o">);</span>
+<span class="n">String</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span> <span class="c1">// will stop bitcoind </span>
 </pre></div>
 
-<p>Start a bitcoind process:</p>
+<p>or with notifications enabled:</p>
 
-<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="n">BtcDaemon</span><span class="o">.</span><span class="na">runDaemon</span><span class="o">(</span><span class="s">"bitcoind"</span><span class="o">,</span> <span class="kc">true</span><span class="o">,</span> <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+<div class="highlight highlight-java"><pre><span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BtcDaemon</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">"http://127.0.0.1:18332"</span><span class="o">),</span>
+                        <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">30000</span><span class="o">,</span> <span class="mi">18334</span><span class="o">,</span> <span class="mi">18335</span><span class="o">,</span> <span class="mi">18336</span><span class="o">);</span>
+<span class="n">daemon</span><span class="o">.</span><span class="na">getWalletListener</span><span class="o">().</span><span class="na">addObserver</span><span class="o">(</span><span class="k">new</span> <span class="n">Observer</span><span class="o">()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">update</span><span class="o">(</span><span class="n">Observable</span> <span class="n">o</span><span class="o">,</span> <span class="n">Object</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">obj</span> <span class="k">instanceof</span> <span class="n">BtcTransaction</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">BtcTransaction</span> <span class="n">transaction</span> <span class="o">=</span> <span class="o">(</span><span class="n">BtcTransaction</span><span class="o">)</span> <span class="n">obj</span><span class="o">;</span>
+            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"received wallet event: "</span> <span class="o">+</span> <span class="n">transaction</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">});</span>
+<span class="kt">double</span> <span class="n">amount</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getReceivedByAccount</span><span class="o">(</span><span class="s">"user"</span><span class="o">);</span>
+<span class="n">daemon</span><span class="o">.</span><span class="na">backupWallet</span><span class="o">(</span><span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s">"wallet.dat"</span><span class="o">));</span>
+<span class="n">daemon</span><span class="o">.</span><span class="na">stopListening</span><span class="o">();</span> <span class="c1">// stops the listeners if notifications enabled</span>
+<span class="n">String</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span> <span class="c1">// will stop bitcoind</span>
 </pre></div>
+
+<p>For notifications to work, bitcoind has to be started with the notification args:</p>
+
+<div class="highlight highlight-bash"><pre>./bitcoind -testnet -rpcuser<span class="o">=</span>user -rpcpassword<span class="o">=</span>password
+            -alertnotify<span class="o">=</span><span class="s2">"java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18334 %s"</span>
+            -blocknotify<span class="o">=</span><span class="s2">"java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18335 %s"</span>
+            -walletnotify<span class="o">=</span><span class="s2">"java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18336 %s"</span>
+</pre></div>
+
+<p><code>org.btc4j.daemon.BtcDaemonNotifier</code> is a simple utility that sends a line of text to a port on a given host.</p>
+
+<ul>
+<li>usage: <code>java BitcoinDaemonNotifier &lt;host&gt; &lt;port&gt; &lt;message&gt;</code>
+</li>
+<li>OS command: you could use an OS command instead such as <code>nc</code>
+</li>
+</ul><p>For more examples see <code>BtcDaemonTest.java</code>.</p>
 
 <h2>
 <a name="issues" class="anchor" href="#issues"><span class="octicon octicon-link"></span></a>Issues</h2>
