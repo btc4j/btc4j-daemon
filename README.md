@@ -4,7 +4,7 @@ Type-safe, open source Java - bitcoind bridge.
 
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
-Calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
+btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Apache Commons HttpClient API (org.apache.commons.httpclient)
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
@@ -66,9 +66,9 @@ For notifications to work, bitcoind has to be started with the notification args
 			-blocknotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18335 %s"
 			-walletnotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18336 %s"
 ```
-`org.btc4j.daemon.BtcDaemonNotifier` is a simple util that sends a line of text to a port on a given host.
+`org.btc4j.daemon.BtcDaemonNotifier` is a simple utility that sends a line of text to a port on a given host.
 * usage: `java BitcoinDaemonNotifier <host> <port> <message>`
-* OS command: you could use an OS command insted such as `nc`
+* OS command: you could use an OS command instead such as `nc`
 
 For more examples see `BtcDaemonTest.java`.
 
