@@ -119,9 +119,12 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_VALIDATE_ADDRESS = "validateaddress";
 	// private static final String BTCAPI_VERIFY_MESSAGE = "verifymessage";
 	private static final String[] BTC4J_DAEMON_VERSIONS = { "0.8.6" };
-	BtcAlertListener alertListener;
-	BtcBlockListener blockListener;
-	BtcWalletListener walletListener;
+	private BtcAlertListener alertListener;
+	private Thread alertThread;
+	private BtcBlockListener blockListener;
+	private Thread blockThread;
+	private BtcWalletListener walletListener;
+	private Thread walletThread;
 
 	public BtcDaemon(URL url, String account, String password, long timeout) {
 		super(url, account, password, timeout);
@@ -130,8 +133,14 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public BtcDaemon(URL url, String account, String password, long timeout, int alertPort, int blockPort, int walletPort) {
 		this(url, account, password, timeout);
 		alertListener = new BtcAlertListener(alertPort);
+		alertThread = new Thread(alertListener, "alertListener");
+		alertThread.start();
 		blockListener = new BtcBlockListener(blockPort, this);
+		blockThread = new Thread(blockListener, "blockListener");
+		blockThread.start();
 		walletListener = new BtcWalletListener(walletPort, this);
+		walletThread = new Thread(walletListener, "walletListener");
+		walletThread.start();
 	}
 
 	public String[] getSupportedVersions() {
@@ -796,14 +805,14 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	}
 
 	public String stop(boolean stopDaemon) throws BtcException {
-		if (alertListener != null) {
-			//alertListener.stop();
+		if ((alertListener != null) && (alertThread != null)) {
+			alertThread.interrupt();
 		}
-		if (blockListener != null) {
-			//blockListener.stop();
+		if ((blockListener != null) && (blockThread != null)) {
+			blockThread.interrupt();
 		}
-		if (walletListener != null) {
-			//walletListener.stop();
+		if ((walletListener != null) && (walletThread != null)) {
+			walletThread.interrupt();
 		}
 		if (stopDaemon) {
 			JsonString results = (JsonString) invoke(BTCAPI_STOP);

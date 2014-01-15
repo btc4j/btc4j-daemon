@@ -18,15 +18,17 @@ public class BtcNotificationListener extends Observable implements Runnable {
 
 	@Override
 	public void run() {
+		Thread currentThread = Thread.currentThread();
 		try (ServerSocket server = new ServerSocket(port);) {
-			while (!Thread.currentThread().isInterrupted()) {
+			LOGGER.info("thread " + currentThread.getName() + " started server socket " + port);
+			while (!currentThread.isInterrupted()) {
+				LOGGER.info("thread " + currentThread.getName() + " waiting to accept " + port);
 				try (Socket socket = server.accept();
 						BufferedReader in = new BufferedReader(
 								new InputStreamReader(socket.getInputStream()));) {
 					String line;
-					if ((line = in.readLine()) != null) {
-						socket.close();
-						LOGGER.info("received " + line);
+					while ((line = in.readLine()) != null) {
+						LOGGER.info("thread " + currentThread.getName() + " received " + line);
 						setChanged();
 						notifyObservers(line);
 					}

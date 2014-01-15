@@ -16,9 +16,9 @@ bitcoind API development status (out of a total of 59 commands):
 
 Notification subsytem development status:
 * Notifier: complete
-* Block events: in progress
-* Wallet events: in progress
-* Alerts: in progress
+* Block events: complete
+* Wallet events: complete
+* Alerts: complete
 
 Using btc4j-daemon
 ------------------
@@ -35,7 +35,13 @@ Maven pom.xml dependency:
 
 Connect to a bitcoind process:
 ```java
-BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"), "user", "password", 30000);
+BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
+						"user", "password", 30000);
+```
+or with notifications enabled:
+```java
+BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
+						"user", "password", 30000, 18334, 18335, 18336);
 ```
 
 Issues

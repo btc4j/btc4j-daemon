@@ -49,15 +49,21 @@ public class BtcDaemonNotifier {
 			System.err.println(BTC4J_DAEMON_NOTIFIER_USAGE);
 			System.exit(1);
 		}
+		System.exit(notify(host, port, message));
+	}
+	
+	public static int notify(String host, int port, String message) {
+		int status = 0;
 		try (Socket socket = new Socket(host, port);
 				PrintWriter out = new PrintWriter(socket.getOutputStream(),
 						true);) {
+			out.println(message);
 			LOGGER.info("sent notification: " + message + " to " + host + ":"
 					+ port);
 		} catch (Throwable t) {
 			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + t);
-			System.exit(1);
+			status = 1;
 		}
-		System.exit(0);
+		return status;
 	}
 }
