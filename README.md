@@ -66,7 +66,7 @@ For notifications to work, bitcoind has to be started with the notification args
 			-blocknotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18335 %s"
 			-walletnotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18336 %s"
 ```
-'org.btc4j.daemon.BtcDaemonNotifier' is a simple util that sends a line of text to a port on a given host.
+`org.btc4j.daemon.BtcDaemonNotifier` is a simple util that sends a line of text to a port on a given host.
 * usage: `java BitcoinDaemonNotifier <host> <port> <message>`
 * OS command: you could use an OS command insted such as `nc`
 
