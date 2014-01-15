@@ -4,7 +4,7 @@ Type-safe, open source Java - bitcoind bridge.
 
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
-The bridge calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
+Calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Apache Commons HttpClient API (org.apache.commons.httpclient)
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
@@ -14,11 +14,11 @@ bitcoind API development status (out of a total of 59 commands):
 * Work in progress: 5
 * Not yet implemented: 19
 
-Notification subsytem development status:
+Notification subsystem development status:
 * Notifier: complete
+* Alerts: complete
 * Block events: complete
 * Wallet events: complete
-* Alerts: complete
 
 Using btc4j-daemon
 ------------------
@@ -37,12 +37,40 @@ Connect to a bitcoind process:
 ```java
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
 						"user", "password", 30000);
+BtcStatus info = daemon.getInfo();
+String address = daemon.getAccountAddress("user");
+String stop = daemon.stop(); // will stop bitcoind 
 ```
 or with notifications enabled:
 ```java
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
 						"user", "password", 30000, 18334, 18335, 18336);
+daemon.getWalletListener().addObserver(new Observer() {
+	@Override
+	public void update(Observable o, Object obj) {
+		if (obj instanceof BtcTransaction) {
+			BtcTransaction transaction = (BtcTransaction) obj;
+			System.out.println("received wallet event: " + transaction);
+		}
+	}
+});
+double amount = daemon.getReceivedByAccount("user");
+daemon.backupWallet(new File("wallet.dat"));
+daemon.stopListening(); // stops the listeners if notifications enabled
+String stop = daemon.stop(); // will stop bitcoind
 ```
+For notifications to work, bitcoind has to be started with the notification args:
+```bash
+./bitcoind -testnet -rpcuser=user -rpcpassword=password
+			-alertnotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18334 %s"
+			-blocknotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18335 %s"
+			-walletnotify="java -cp btc4j-daemon-0.0.3-SNAPSHOT.jar org.btc4j.daemon.BtcDaemonNotifier 127.0.0.1 18336 %s"
+```
+'org.btc4j.daemon.BtcDaemonNotifier' is a simple util that sends a line of text to a port on a given host.
+* usage: `java BitcoinDaemonNotifier <host> <port> <message>`
+* OS command: you could use an OS command insted such as `nc`
+
+For more examples see `BtcDaemonTest.java`.
 
 Issues
 ------

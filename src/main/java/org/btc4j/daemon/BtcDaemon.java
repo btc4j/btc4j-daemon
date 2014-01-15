@@ -159,6 +159,18 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		return walletListener;
 	}
 	
+	public void stopListening() {
+		if ((alertListener != null) && (alertThread != null)) {
+			alertThread.interrupt();
+		}
+		if ((blockListener != null) && (blockThread != null)) {
+			blockThread.interrupt();
+		}
+		if ((walletListener != null) && (walletThread != null)) {
+			walletThread.interrupt();
+		}
+	}
+	
 	public void addMultiSignatureAddress(int required, List<String> keys)
 			throws BtcException {
 		addMultiSignatureAddress(required, keys, "");
@@ -803,28 +815,11 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 				BtcException.BTC4J_ERROR_MESSAGE + ": "
 						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
 	}
-
-	public String stop(boolean stopDaemon) throws BtcException {
-		if ((alertListener != null) && (alertThread != null)) {
-			alertThread.interrupt();
-		}
-		if ((blockListener != null) && (blockThread != null)) {
-			blockThread.interrupt();
-		}
-		if ((walletListener != null) && (walletThread != null)) {
-			walletThread.interrupt();
-		}
-		if (stopDaemon) {
-			JsonString results = (JsonString) invoke(BTCAPI_STOP);
-			return results.getString();
-		} else {
-			return "Bitcoin daemon stopping";
-		}
-	}
 	
 	@Override
 	public String stop() throws BtcException {
-		return stop(true);
+		JsonString results = (JsonString) invoke(BTCAPI_STOP);
+		return results.getString();
 	}
 
 	@Override

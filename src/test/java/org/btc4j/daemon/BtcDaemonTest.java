@@ -52,12 +52,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class BtcDaemonTest {
+	private static final boolean BITCOIND_STOP = false;
 	private static final String BITCOIND_HOST = "127.0.0.1";
 	private static final String BITCOIND_URL = "http://" + BITCOIND_HOST + ":18332";
 	private static final String BITCOIND_ACCOUNT = "user";
 	private static final String BITCOIND_PASSWD = "password";
 	private static final long BITCOIND_TIMEOUT = 10000;
-	private static final long BITCOIND_NOTIFICATION_SLEEP = 60000;
+	private static final long BITCOIND_NOTIFICATION_SLEEP = 30000;
 	private static final int BITCOIND_ALERT_PORT = 18334;
 	private static final int BITCOIND_BLOCK_PORT = 18335;
 	private static final int BITCOIND_WALLET_PORT = 18336;
@@ -118,12 +119,12 @@ public class BtcDaemonTest {
 		assertEquals(BITCOIND_ALERT, ALERT_NOTIFICATIONS.get(0));
 		assertTrue(BLOCK_NOTIFICATIONS.size() > 0);
 		assertTrue(WALLET_NOTIFICATIONS.size() > 0);
-		String stop = BITCOIND_WITH_LISTENER.stop(false);
-		assertNotNull(stop);
-		assertTrue(stop.length() >= 0);
-		stop = BITCOIND_WITHOUT_LISTENER.stop(false);
-		assertNotNull(stop);
-		assertTrue(stop.length() >= 0);
+		BITCOIND_WITH_LISTENER.stopListening();
+		if (BITCOIND_STOP) {
+			String stop = BITCOIND_WITHOUT_LISTENER.stop();
+			assertNotNull(stop);
+			assertTrue(stop.length() >= 0);
+		}
 	}
 	
 	@Test
