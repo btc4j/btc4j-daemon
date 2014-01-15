@@ -51,7 +51,7 @@ public class BtcDaemonNotifier {
 		}
 		System.exit(notify(host, port, message));
 	}
-	
+
 	public static int notify(String host, int port, String message) {
 		int status = 0;
 		try (Socket socket = new Socket(host, port);

@@ -9,10 +9,10 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
 bitcoind API development status (out of a total of 59 commands):
-* Completed and verified: 34
+* Completed and verified: 37
 * Completed but not verified: 1
 * Work in progress: 5
-* Not yet implemented: 19
+* Not yet implemented: 16
 
 Notification subsystem development status:
 * Notifier: complete
@@ -22,7 +22,7 @@ Notification subsystem development status:
 
 Using btc4j-daemon
 ------------------
-btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (email@ggonzalez.info).
+btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (ggonzalez@btc4j.org).
 
 Maven pom.xml dependency:
 ```xml
@@ -41,7 +41,7 @@ BtcStatus info = daemon.getInfo();
 String address = daemon.getAccountAddress("user");
 String stop = daemon.stop(); // will stop bitcoind 
 ```
-or with notifications enabled:
+or, with notifications enabled:
 ```java
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
 						"user", "password", 30000, 18334, 18335, 18336);
@@ -68,7 +68,7 @@ For notifications to work, bitcoind has to be started with the notification args
 ```
 `org.btc4j.daemon.BtcDaemonNotifier` is a simple utility that sends a line of text to a port on a given host.
 * usage: `java BitcoinDaemonNotifier <host> <port> <message>`
-* OS command: you could use an OS command instead such as `nc`
+* OS command: you could use an OS command instead such as `netcat` or `nc`
 
 For more examples see `BtcDaemonTest.java`.
 
@@ -86,4 +86,4 @@ Donations
 ---------
 If you find the software useful and would like to make a donation, please send bitcoins to `1ACz6GKw3B6vjoYwGA2hnXDnbR5koFhC4j`.
 
-Copyright &copy; 2013, 2014 by Guillermo Gonzalez, btc4j.org.
+Copyright &copy; 2013, 2014 by Guillermo Gonzalez, [btc4j.org](http://www.btc4j.org "btc4j.org").

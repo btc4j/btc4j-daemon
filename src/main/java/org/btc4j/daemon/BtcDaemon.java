@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonString;
@@ -42,20 +43,19 @@ import org.btc4j.core.BtcApi;
 import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
-import org.btc4j.core.BtcMining;
+import org.btc4j.core.BtcMiningInfo;
+import org.btc4j.core.BtcMultiSignatureAddress;
 import org.btc4j.core.BtcNodeOperation;
 import org.btc4j.core.BtcPeer;
-import org.btc4j.core.BtcStatus;
+import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionOutputSet;
 
 public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
-	// private static final String BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS =
-	// "addmultisigaddress";
-	// private static final String BTCAPI_ADD_NODE = "addnode";
+	private static final String BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS = "addmultisigaddress";
+	private static final String BTCAPI_ADD_NODE = "addnode";
 	private static final String BTCAPI_BACKUP_WALLET = "backupwallet";
-	// private static final String BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS =
-	// "createmultisig";
+	private static final String BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS = "createmultisig";
 	// private static final String BTCAPI_CREATE_RAW_TRANSACTION =
 	// "createrawtransaction";
 	// private static final String BTCAPI_DECODE_RAW_TRANSACTION =
@@ -129,8 +129,9 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public BtcDaemon(URL url, String account, String password, long timeout) {
 		super(url, account, password, timeout);
 	}
-	
-	public BtcDaemon(URL url, String account, String password, long timeout, int alertPort, int blockPort, int walletPort) {
+
+	public BtcDaemon(URL url, String account, String password, long timeout,
+			int alertPort, int blockPort, int walletPort) {
 		this(url, account, password, timeout);
 		alertListener = new BtcAlertListener(alertPort);
 		alertThread = new Thread(alertListener, "alertListener");
@@ -146,19 +147,19 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public String[] getSupportedVersions() {
 		return BTC4J_DAEMON_VERSIONS;
 	}
-	
+
 	public BtcAlertListener getAlertListener() {
 		return alertListener;
 	}
-	
+
 	public BtcBlockListener getBlockListener() {
 		return blockListener;
 	}
-	
+
 	public BtcWalletListener getWalletListener() {
 		return walletListener;
 	}
-	
+
 	public void stopListening() {
 		if ((alertListener != null) && (alertThread != null)) {
 			alertThread.interrupt();
@@ -170,26 +171,47 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 			walletThread.interrupt();
 		}
 	}
-	
-	public void addMultiSignatureAddress(int required, List<String> keys)
+
+	public String addMultiSignatureAddress(int required, List<String> keys)
 			throws BtcException {
-		addMultiSignatureAddress(required, keys, "");
+		return addMultiSignatureAddress(required, keys, "");
 	}
 
 	@Override
-	public void addMultiSignatureAddress(int required, List<String> keys,
+	public String addMultiSignatureAddress(int required, List<String> keys,
 			String account) throws BtcException {
-		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-				BtcException.BTC4J_ERROR_MESSAGE + ": "
-						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		if (required < 1) {
+			required = 1;
+		}
+		if (keys == null) {
+			keys = new ArrayList<String>();
+		}
+		if (required > keys.size()) {
+			required = keys.size();
+		}
+		if (account == null) {
+			account = "";
+		}
+		JsonArrayBuilder keyParams = Json.createArrayBuilder();
+		for (String key : keys) {
+			keyParams.add(key);
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(required)
+				.add(keyParams).add(account).build();
+		JsonString results = (JsonString) invoke(
+				BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS, parameters);
+		return results.getString();
 	}
 
 	@Override
 	public void addNode(String node, BtcNodeOperation operation)
 			throws BtcException {
-		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-				BtcException.BTC4J_ERROR_MESSAGE + ": "
-						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		if (node == null) {
+			node = "";
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(node)
+				.add(String.valueOf(operation).toLowerCase()).build();
+		invoke(BTCAPI_ADD_NODE, parameters);
 	}
 
 	@Override
@@ -203,11 +225,26 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	}
 
 	@Override
-	public String createMultiSignatureAddress(int required, List<String> keys)
-			throws BtcException {
-		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-				BtcException.BTC4J_ERROR_MESSAGE + ": "
-						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+	public BtcMultiSignatureAddress createMultiSignatureAddress(int required,
+			List<String> keys) throws BtcException {
+		if (required < 1) {
+			required = 1;
+		}
+		if (keys == null) {
+			keys = new ArrayList<String>();
+		}
+		if (required > keys.size()) {
+			required = keys.size();
+		}
+		JsonArrayBuilder keyParams = Json.createArrayBuilder();
+		for (String key : keys) {
+			keyParams.add(key);
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(required)
+				.add(keyParams).build();
+		JsonObject results = (JsonObject) invoke(
+				BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS, parameters);
+		return jsonMultiSignatureAddress(results);
 	}
 
 	@Override
@@ -232,9 +269,9 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 			address = "";
 		}
 		JsonArray parameters = Json.createArrayBuilder().add(address).build();
-		JsonString resultss = (JsonString) invoke(BTCAPI_DUMP_PRIVATE_KEY,
+		JsonString results = (JsonString) invoke(BTCAPI_DUMP_PRIVATE_KEY,
 				parameters);
-		return resultss.getString();
+		return results.getString();
 	}
 
 	@Override
@@ -251,9 +288,8 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 			address = "";
 		}
 		JsonArray parameters = Json.createArrayBuilder().add(address).build();
-		JsonString resultss = (JsonString) invoke(BTCAPI_GET_ACCOUNT,
-				parameters);
-		return resultss.getString();
+		JsonString results = (JsonString) invoke(BTCAPI_GET_ACCOUNT, parameters);
+		return results.getString();
 	}
 
 	@Override
@@ -378,15 +414,15 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	}
 
 	@Override
-	public BtcStatus getInformation() throws BtcException {
+	public BtcInfo getInformation() throws BtcException {
 		JsonObject results = (JsonObject) invoke(BTCAPI_GET_INFORMATION);
-		return jsonStatus(results);
+		return jsonInfo(results);
 	}
 
 	@Override
-	public BtcMining getMiningInformation() throws BtcException {
+	public BtcMiningInfo getMiningInformation() throws BtcException {
 		JsonObject results = (JsonObject) invoke(BTCAPI_GET_MINING_INFORMATION);
-		return jsonMining(results);
+		return jsonMiningInfo(results);
 	}
 
 	public String getNewAddress() throws BtcException {
@@ -815,7 +851,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 				BtcException.BTC4J_ERROR_MESSAGE + ": "
 						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
 	}
-	
+
 	@Override
 	public String stop() throws BtcException {
 		JsonString results = (JsonString) invoke(BTCAPI_STOP);

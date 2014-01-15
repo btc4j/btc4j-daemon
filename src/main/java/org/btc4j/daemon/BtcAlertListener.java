@@ -24,12 +24,12 @@
 
 package org.btc4j.daemon;
 
-public class BtcAlertListener extends BtcNotificationListener {
+public class BtcAlertListener extends BtcNotificationSource {
 
 	public BtcAlertListener(int port) {
 		super(port);
 	}
-	
+
 	@Override
 	public void notifyObservers(Object arg) {
 		if (hasChanged()) {

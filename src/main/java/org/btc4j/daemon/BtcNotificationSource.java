@@ -7,12 +7,12 @@ import java.net.Socket;
 import java.util.Observable;
 import java.util.logging.Logger;
 
-public class BtcNotificationListener extends Observable implements Runnable {
+public class BtcNotificationSource extends Observable implements Runnable {
 	private static final Logger LOGGER = Logger
-			.getLogger(BtcNotificationListener.class.getName());
+			.getLogger(BtcNotificationSource.class.getName());
 	private int port;
 
-	public BtcNotificationListener(int port) {
+	public BtcNotificationSource(int port) {
 		this.port = port;
 	}
 
@@ -20,15 +20,18 @@ public class BtcNotificationListener extends Observable implements Runnable {
 	public void run() {
 		Thread currentThread = Thread.currentThread();
 		try (ServerSocket server = new ServerSocket(port);) {
-			LOGGER.info("thread " + currentThread.getName() + " started server socket " + port);
+			LOGGER.info("thread " + currentThread.getName()
+					+ " started server socket " + port);
 			while (!currentThread.isInterrupted()) {
-				LOGGER.info("thread " + currentThread.getName() + " waiting to accept " + port);
+				LOGGER.info("thread " + currentThread.getName()
+						+ " waiting to accept " + port);
 				try (Socket socket = server.accept();
 						BufferedReader in = new BufferedReader(
 								new InputStreamReader(socket.getInputStream()));) {
 					String line;
 					while ((line = in.readLine()) != null) {
-						LOGGER.info("thread " + currentThread.getName() + " received " + line);
+						LOGGER.info("thread " + currentThread.getName()
+								+ " received " + line);
 						setChanged();
 						notifyObservers(line);
 					}

@@ -53,117 +53,119 @@ import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
-import org.btc4j.core.BtcMining;
+import org.btc4j.core.BtcMiningInfo;
+import org.btc4j.core.BtcMultiSignatureAddress;
 import org.btc4j.core.BtcPeer;
-import org.btc4j.core.BtcStatus;
+import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionCategory;
 import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
 
 public class BtcJsonRpcHttpClient {
-	private final static Logger LOGGER = Logger
-			.getLogger(BtcJsonRpcHttpClient.class.getName());
+	private static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "response error is empty";
+	private static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
+	private static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "response is empty";
+	private static final String BTC4J_DAEMON_DATA_NULL_URL = "server URL is null";
+	private static final String BTC4J_DAEMON_HTTP_HEADER = "Content-Type";
+	private static final String BTC4J_DAEMON_JSON_CONTENT_TYPE = "application/json";
+	private static final String BTC4J_DAEMON_JSONRPC_CONTENT_TYPE = "application/json-rpc";
 	private static final String BTCOBJ_ACCOUNT_ACCOUNT = "account";
 	private static final String BTCOBJ_ACCOUNT_AMOUNT = "amount";
 	private static final String BTCOBJ_ACCOUNT_CONFIRMATIONS = "confirmations";
-	private static final String BTCOBJ_ADDRESS_VALID = "isvalid";
-	private static final String BTCOBJ_ADDRESS_ADDRESS = "address";
-	private static final String BTCOBJ_ADDRESS_MINE = "ismine";
-	private static final String BTCOBJ_ADDRESS_SCRIPT = "isscript";
-	private static final String BTCOBJ_ADDRESS_PUBLIC_KEY = "pubkey";
-	private static final String BTCOBJ_ADDRESS_COMPRESSED = "iscompressed";
 	private static final String BTCOBJ_ADDRESS_ACCOUNT = "account";
+	private static final String BTCOBJ_ADDRESS_ADDRESS = "address";
 	private static final String BTCOBJ_ADDRESS_AMOUNT = "amount";
+	private static final String BTCOBJ_ADDRESS_COMPRESSED = "iscompressed";
 	private static final String BTCOBJ_ADDRESS_CONFIRMATIONS = "confirmations";
-	private static final String BTCOBJ_BLOCK_HASH = "hash";
-	private static final String BTCOBJ_BLOCK_CONFIRMATIONS = "confirmations";
-	private static final String BTCOBJ_BLOCK_SIZE = "size";
-	private static final String BTCOBJ_BLOCK_HEIGHT = "height";
-	private static final String BTCOBJ_BLOCK_VERSION = "version";
-	private static final String BTCOBJ_BLOCK_MERKLE_ROOT = "merkleroot";
-	private static final String BTCOBJ_BLOCK_TRANSACTIONS = "tx";
-	private static final String BTCOBJ_BLOCK_TIME = "time";
-	private static final String BTCOBJ_BLOCK_NONCE = "nonce";
+	private static final String BTCOBJ_ADDRESS_MINE = "ismine";
+	private static final String BTCOBJ_ADDRESS_PUBLIC_KEY = "pubkey";
+	private static final String BTCOBJ_ADDRESS_REDEEM_SCRIPT = "redeemScript";
+	private static final String BTCOBJ_ADDRESS_SCRIPT = "isscript";
+	private static final String BTCOBJ_ADDRESS_VALID = "isvalid";
 	private static final String BTCOBJ_BLOCK_BITS = "bits";
+	private static final String BTCOBJ_BLOCK_CONFIRMATIONS = "confirmations";
 	private static final String BTCOBJ_BLOCK_DIFFICULTY = "difficulty";
-	private static final String BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH = "previousblockhash";
+	private static final String BTCOBJ_BLOCK_HASH = "hash";
+	private static final String BTCOBJ_BLOCK_HEIGHT = "height";
+	private static final String BTCOBJ_BLOCK_MERKLE_ROOT = "merkleroot";
 	private static final String BTCOBJ_BLOCK_NEXT_BLOCK_HASH = "nextblockhash";
-	private static final String BTCOBJ_LASTBLOCK_LASTBLOCK = "lastblock";
-	private static final String BTCOBJ_LASTBLOCK_TRANSACTIONS = "transactions";
-	private static final String BTCOBJ_INFO_VERSION = "version";
-	private static final String BTCOBJ_INFO_PROTOCOL_VERSION = "protocolversion";
-	private static final String BTCOBJ_INFO_WALLET_VERSION = "walletversion";
+	private static final String BTCOBJ_BLOCK_NONCE = "nonce";
+	private static final String BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH = "previousblockhash";
+	private static final String BTCOBJ_BLOCK_SIZE = "size";
+	private static final String BTCOBJ_BLOCK_TIME = "time";
+	private static final String BTCOBJ_BLOCK_TRANSACTIONS = "tx";
+	private static final String BTCOBJ_BLOCK_VERSION = "version";
 	private static final String BTCOBJ_INFO_BALANCE = "balance";
 	private static final String BTCOBJ_INFO_BLOCKS = "blocks";
-	private static final String BTCOBJ_INFO_TIME_OFFSET = "timeoffset";
 	private static final String BTCOBJ_INFO_CONNECTIONS = "connections";
-	private static final String BTCOBJ_INFO_PROXY = "proxy";
-	private static final String BTCOBJ_INFO_DIFFICULTY = "difficulty";
-	private static final String BTCOBJ_INFO_TESTNET = "testnet";
-	private static final String BTCOBJ_INFO_KEYPOOL_OLDEST = "keypoololdest";
-	private static final String BTCOBJ_INFO_KEYPOOL_SIZE = "keypoolsize";
-	private static final String BTCOBJ_INFO_TRANSACTION_FEE = "paytxfee";
-	private static final String BTCOBJ_INFO_ERRORS = "errors";
 	private static final String BTCOBJ_INFO_CURRENT_BLOCK_SIZE = "currentblocksize";
 	private static final String BTCOBJ_INFO_CURRENT_BLOCK_TRANSACTIONS = "currentblocktx";
+	private static final String BTCOBJ_INFO_DIFFICULTY = "difficulty";
+	private static final String BTCOBJ_INFO_ERRORS = "errors";
 	private static final String BTCOBJ_INFO_GENERATE = "generate";
-	private static final String BTCOBJ_INFO_PROCESSOR_LIMIT = "genproclimit";
 	private static final String BTCOBJ_INFO_HASHES_PER_SECOND = "hashespersec";
+	private static final String BTCOBJ_INFO_KEYPOOL_OLDEST = "keypoololdest";
+	private static final String BTCOBJ_INFO_KEYPOOL_SIZE = "keypoolsize";
 	private static final String BTCOBJ_INFO_POOLED_TRANSACTIONS = "pooledtx";
+	private static final String BTCOBJ_INFO_PROCESSOR_LIMIT = "genproclimit";
+	private static final String BTCOBJ_INFO_PROTOCOL_VERSION = "protocolversion";
+	private static final String BTCOBJ_INFO_PROXY = "proxy";
+	private static final String BTCOBJ_INFO_TESTNET = "testnet";
+	private static final String BTCOBJ_INFO_TIME_OFFSET = "timeoffset";
+	private static final String BTCOBJ_INFO_TRANSACTION_FEE = "paytxfee";
+	private static final String BTCOBJ_INFO_VERSION = "version";
+	private static final String BTCOBJ_INFO_WALLET_VERSION = "walletversion";
+	private static final String BTCOBJ_LASTBLOCK_LASTBLOCK = "lastblock";
+	private static final String BTCOBJ_LASTBLOCK_TRANSACTIONS = "transactions";
 	private static final String BTCOBJ_PEER_ADDRESS = "addr";
-	private static final String BTCOBJ_PEER_SERVICES = "services";
-	private static final String BTCOBJ_PEER_LAST_SEND = "lastsend";
-	private static final String BTCOBJ_PEER_LAST_RECEIVED = "lastrecv";
-	private static final String BTCOBJ_PEER_BYTES_SENT = "bytessent";
-	private static final String BTCOBJ_PEER_BYTES_RECEIVED = "bytesrecv";
-	private static final String BTCOBJ_PEER_CONNECTION_TIME = "conntime";
-	private static final String BTCOBJ_PEER_VERSION = "version";
-	private static final String BTCOBJ_PEER_SUBVERSION = "subver";
-	private static final String BTCOBJ_PEER_INBOUND = "inbound";
-	private static final String BTCOBJ_PEER_START_HEIGHT = "startingheight";
 	private static final String BTCOBJ_PEER_BAN_SCORE = "banscore";
+	private static final String BTCOBJ_PEER_BYTES_RECEIVED = "bytesrecv";
+	private static final String BTCOBJ_PEER_BYTES_SENT = "bytessent";
+	private static final String BTCOBJ_PEER_CONNECTION_TIME = "conntime";
+	private static final String BTCOBJ_PEER_INBOUND = "inbound";
+	private static final String BTCOBJ_PEER_LAST_RECEIVED = "lastrecv";
+	private static final String BTCOBJ_PEER_LAST_SEND = "lastsend";
+	private static final String BTCOBJ_PEER_SERVICES = "services";
+	private static final String BTCOBJ_PEER_START_HEIGHT = "startingheight";
+	private static final String BTCOBJ_PEER_SUBVERSION = "subver";
 	private static final String BTCOBJ_PEER_SYNC_NODE = "syncnode";
-	private static final String BTCOBJ_TX_TRANSACTION = "txid";
+	private static final String BTCOBJ_PEER_VERSION = "version";
 	private static final String BTCOBJ_TX_AMOUNT = "amount";
+	private static final String BTCOBJ_TX_BLOCK_HASH = "blockhash";
+	private static final String BTCOBJ_TX_BLOCK_INDEX = "blockindex";
+	private static final String BTCOBJ_TX_BLOCK_TIME = "blocktime";
 	private static final String BTCOBJ_TX_CONFIRMATIONS = "confirmations";
 	private static final String BTCOBJ_TX_DETAILS = "details";
 	private static final String BTCOBJ_TX_TIME = "time";
 	private static final String BTCOBJ_TX_TIME_RECEIVED = "timereceived";
-	private static final String BTCOBJ_TX_BLOCK_HASH = "blockhash";
-	private static final String BTCOBJ_TX_BLOCK_INDEX = "blockindex";
-	private static final String BTCOBJ_TX_BLOCK_TIME = "blocktime";
+	private static final String BTCOBJ_TX_TRANSACTION = "txid";
 	private static final String BTCOBJ_TXDETAIL_ACCOUNT = "account";
 	private static final String BTCOBJ_TXDETAIL_ADDRESS = "address";
-	private static final String BTCOBJ_TXDETAIL_CATEGORY = "category";
 	private static final String BTCOBJ_TXDETAIL_AMOUNT = "amount";
+	private static final String BTCOBJ_TXDETAIL_CATEGORY = "category";
 	private static final String BTCOBJ_TXDETAIL_FEE = "fee";
-	private static final String BTCOBJ_TXOUTPUTSET_HEIGHT = "height";
 	private static final String BTCOBJ_TXOUTPUTSET_BEST_BLOCK = "bestblock";
-	private static final String BTCOBJ_TXOUTPUTSET_TRANSACTIONS = "transactions";
-	private static final String BTCOBJ_TXOUTPUTSET_OUTPUT_TRANSACTIONS = "txouts";
 	private static final String BTCOBJ_TXOUTPUTSET_BYTES_SERIALIZED = "bytes_serialized";
 	private static final String BTCOBJ_TXOUTPUTSET_HASH_SERIALIZED = "hash_serialized";
+	private static final String BTCOBJ_TXOUTPUTSET_HEIGHT = "height";
+	private static final String BTCOBJ_TXOUTPUTSET_OUTPUT_TRANSACTIONS = "txouts";
 	private static final String BTCOBJ_TXOUTPUTSET_TOTAL_AMOUT = "total_amount";
-	private static final String JSONRPC_JSONRPC = "jsonrpc";
-	private static final String JSONRPC_VERSION = "2.0";
+	private static final String BTCOBJ_TXOUTPUTSET_TRANSACTIONS = "transactions";
+	private static final String JSONRPC_CODE = "code";
+	private static final String JSONRPC_DATA = "data";
+	private static final String JSONRPC_ERROR = "error";
 	private static final String JSONRPC_ID = "id";
+	private static final String JSONRPC_JSONRPC = "jsonrpc";
+	private static final String JSONRPC_MESSAGE = "message";
 	private static final String JSONRPC_METHOD = "method";
 	private static final String JSONRPC_PARAMS = "params";
 	private static final String JSONRPC_RESULT = "result";
-	private static final String JSONRPC_ERROR = "error";
-	private static final String JSONRPC_CODE = "code";
-	private static final String JSONRPC_MESSAGE = "message";
-	private static final String JSONRPC_DATA = "data";
-	private static final String BTC4J_DAEMON_HTTP_HEADER = "Content-Type";
-	private static final String BTC4J_DAEMON_JSONRPC_CONTENT_TYPE = "application/json-rpc";
-	private static final String BTC4J_DAEMON_JSON_CONTENT_TYPE = "application/json";
-	private static final String BTC4J_DAEMON_DATA_NULL_URL = "server URL is null";
-	private static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "response is empty";
-	private static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
-	private static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "response error is empty";
-	private HttpState state;
+	private static final String JSONRPC_VERSION = "2.0";
+	private final static Logger LOGGER = Logger
+			.getLogger(BtcJsonRpcHttpClient.class.getName());
 	private HttpClientParams params;
+	private HttpState state;
 	private URL url;
 
 	public BtcJsonRpcHttpClient(URL url, String account, String password,
@@ -320,6 +322,35 @@ public class BtcJsonRpcHttpClient {
 		return block;
 	}
 
+	public BtcInfo jsonInfo(JsonObject value) throws BtcException {
+		BtcInfo info = new BtcInfo();
+		info.setVersion(value.getInt(BTCOBJ_INFO_VERSION, 0));
+		info.setProtocolVersion(value.getInt(BTCOBJ_INFO_PROTOCOL_VERSION, 0));
+		info.setWalletVersion(value.getInt(BTCOBJ_INFO_WALLET_VERSION, 0));
+		JsonNumber balance = value.getJsonNumber(BTCOBJ_INFO_BALANCE);
+		if (balance != null) {
+			info.setBalance(balance.doubleValue());
+		}
+		info.setBlocks(value.getInt(BTCOBJ_INFO_BLOCKS, 0));
+		info.setTimeOffset(value.getInt(BTCOBJ_INFO_TIME_OFFSET, 0));
+		info.setConnections(value.getInt(BTCOBJ_INFO_CONNECTIONS, 0));
+		info.setProxy(value.getString(BTCOBJ_INFO_PROXY, ""));
+		JsonNumber difficulty = value.getJsonNumber(BTCOBJ_INFO_DIFFICULTY);
+		if (difficulty != null) {
+			info.setDifficulty(difficulty.doubleValue());
+		}
+		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
+		info.setKeyPoolOldest(value.getInt(BTCOBJ_INFO_KEYPOOL_OLDEST, 0));
+		info.setKeyPoolSize(value.getInt(BTCOBJ_INFO_KEYPOOL_SIZE, 0));
+		JsonNumber transactionFee = value
+				.getJsonNumber(BTCOBJ_INFO_TRANSACTION_FEE);
+		if (transactionFee != null) {
+			info.setTransactionFee(transactionFee.doubleValue());
+		}
+		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
+		return info;
+	}
+
 	public BtcLastBlock jsonLastBlock(JsonObject value) throws BtcException {
 		BtcLastBlock lastBlock = new BtcLastBlock();
 		lastBlock.setLastBlock(value.getString(BTCOBJ_LASTBLOCK_LASTBLOCK, ""));
@@ -334,8 +365,8 @@ public class BtcJsonRpcHttpClient {
 		return lastBlock;
 	}
 
-	public BtcMining jsonMining(JsonObject value) throws BtcException {
-		BtcMining info = new BtcMining();
+	public BtcMiningInfo jsonMiningInfo(JsonObject value) throws BtcException {
+		BtcMiningInfo info = new BtcMiningInfo();
 		info.setBlocks(value.getInt(BTCOBJ_INFO_BLOCKS, 0));
 		info.setCurrentBlockSize(value
 				.getInt(BTCOBJ_INFO_CURRENT_BLOCK_SIZE, 0));
@@ -353,6 +384,15 @@ public class BtcJsonRpcHttpClient {
 				BTCOBJ_INFO_POOLED_TRANSACTIONS, 0));
 		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
 		return info;
+	}
+
+	public BtcMultiSignatureAddress jsonMultiSignatureAddress(JsonObject value)
+			throws BtcException {
+		BtcMultiSignatureAddress address = new BtcMultiSignatureAddress();
+		address.setAddress(value.getString(BTCOBJ_ADDRESS_ADDRESS, ""));
+		address.setRedeemScript(value.getString(BTCOBJ_ADDRESS_REDEEM_SCRIPT,
+				""));
+		return address;
 	}
 
 	public BtcPeer jsonPeer(JsonObject value) throws BtcException {
@@ -434,34 +474,5 @@ public class BtcJsonRpcHttpClient {
 			output.setTotalAmount(amount.doubleValue());
 		}
 		return output;
-	}
-
-	public BtcStatus jsonStatus(JsonObject value) throws BtcException {
-		BtcStatus info = new BtcStatus();
-		info.setVersion(value.getInt(BTCOBJ_INFO_VERSION, 0));
-		info.setProtocolVersion(value.getInt(BTCOBJ_INFO_PROTOCOL_VERSION, 0));
-		info.setWalletVersion(value.getInt(BTCOBJ_INFO_WALLET_VERSION, 0));
-		JsonNumber balance = value.getJsonNumber(BTCOBJ_INFO_BALANCE);
-		if (balance != null) {
-			info.setBalance(balance.doubleValue());
-		}
-		info.setBlocks(value.getInt(BTCOBJ_INFO_BLOCKS, 0));
-		info.setTimeOffset(value.getInt(BTCOBJ_INFO_TIME_OFFSET, 0));
-		info.setConnections(value.getInt(BTCOBJ_INFO_CONNECTIONS, 0));
-		info.setProxy(value.getString(BTCOBJ_INFO_PROXY, ""));
-		JsonNumber difficulty = value.getJsonNumber(BTCOBJ_INFO_DIFFICULTY);
-		if (difficulty != null) {
-			info.setDifficulty(difficulty.doubleValue());
-		}
-		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
-		info.setKeyPoolOldest(value.getInt(BTCOBJ_INFO_KEYPOOL_OLDEST, 0));
-		info.setKeyPoolSize(value.getInt(BTCOBJ_INFO_KEYPOOL_SIZE, 0));
-		JsonNumber transactionFee = value
-				.getJsonNumber(BTCOBJ_INFO_TRANSACTION_FEE);
-		if (transactionFee != null) {
-			info.setTransactionFee(transactionFee.doubleValue());
-		}
-		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
-		return info;
 	}
 }

@@ -4,16 +4,16 @@ import java.util.logging.Logger;
 
 import org.btc4j.core.BtcTransaction;
 
-public class BtcWalletListener extends BtcNotificationListener {
+public class BtcWalletListener extends BtcNotificationSource {
 	private static final Logger LOGGER = Logger
 			.getLogger(BtcWalletListener.class.getName());
 	private BtcDaemon daemon;
-	
+
 	public BtcWalletListener(int port, BtcDaemon daemon) {
 		super(port);
 		this.daemon = daemon;
 	}
-	
+
 	@Override
 	public void notifyObservers(Object arg) {
 		if (hasChanged()) {
