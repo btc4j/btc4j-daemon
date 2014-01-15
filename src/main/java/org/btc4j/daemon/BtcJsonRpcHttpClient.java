@@ -475,4 +475,20 @@ public class BtcJsonRpcHttpClient {
 		}
 		return output;
 	}
+	
+	public String str(String val) {
+		return (val == null)? "": val;
+	}
+	
+	public int min(int val, int min) {
+		return (val < min)? min: val;
+	}
+	
+	public double min(double val, double min) {
+		return (val < min)? min: val;
+	}
+	
+	public String nil(String val) {
+		return (val == null)? null: (val.length() > 0? val: null);
+	}
 }

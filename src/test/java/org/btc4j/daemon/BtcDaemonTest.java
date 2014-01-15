@@ -233,9 +233,10 @@ public class BtcDaemonTest {
 		assertNotNull(address);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void getAddedNodeInformation() throws BtcException {
-		BITCOIND_WITH_LISTENER.getAddedNodeInformation(false, "");
+		String info = BITCOIND_WITH_LISTENER.getAddedNodeInformation(false, "");
+		assertNotNull(info);
 	}
 
 	@Test
