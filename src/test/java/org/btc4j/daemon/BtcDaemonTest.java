@@ -27,6 +27,7 @@ package org.btc4j.daemon;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +36,14 @@ import java.util.Observer;
 import java.util.Vector;
 
 import org.btc4j.core.BtcAccount;
+import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
 import org.btc4j.core.BtcMultiSignatureAddress;
-import org.btc4j.core.BtcNodeOperation;
+import org.btc4j.core.BtcNode;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcTransaction;
@@ -58,7 +60,7 @@ public class BtcDaemonTest {
 	private static final String BITCOIND_URL = "http://" + BITCOIND_HOST
 			+ ":18332";
 	private static final String BITCOIND_ACCOUNT = "user";
-	private static final String BITCOIND_PASSWD = "password";
+	private static final String BITCOIND_PASSWORD = "password";
 	private static final long BITCOIND_TIMEOUT = 10000;
 	private static final long BITCOIND_NOTIFICATION_SLEEP = 30000;
 	private static final int BITCOIND_ALERT_PORT = 18334;
@@ -69,6 +71,10 @@ public class BtcDaemonTest {
 	private static final String BITCOIND_ADDRESS_1 = "mteUu5qrZJAjybLJwVQpxxmpnyGFUhPYQD";
 	private static final String BITCOIND_ADDRESS_2 = "mhkM5pS8Jfot5snS7H4AK2xyRbJ8erUNWc";
 	private static final String BITCOIND_ADDRESS_3 = "mmqnw2wasfhRAwpKq6dD7jjBfs4ViBdkm3";
+	private static final String BITCOIND_BLOCK_1 = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+	private static final String BITCOIND_BLOCK_2 = "00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206";
+	private static final String BITCOIND_TRANSACTION_1 = "98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082";
+	private static final String BITCOIND_TRANSACTION_2 = "5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099";
 	private static final String BITCOIND_PRIVATE_KEY = "cQ57cLoFkYRSAZJGkYMc8cTCoJhaQVEqSYNuVuUySzuLATFQ4Vcr";
 	private static final String BITCOIND_ALERT = "bitcoin daemon test alert";
 	private static final String BITCOIND_PEER_1 = "213.5.71.38:18333";
@@ -82,9 +88,9 @@ public class BtcDaemonTest {
 	@BeforeClass
 	public static void init() throws Exception {
 		BITCOIND_WITHOUT_LISTENER = new BtcDaemon(new URL(BITCOIND_URL),
-				BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_TIMEOUT);
+				BITCOIND_ACCOUNT, BITCOIND_PASSWORD, BITCOIND_TIMEOUT);
 		BITCOIND_WITH_LISTENER = new BtcDaemon(new URL(BITCOIND_URL),
-				BITCOIND_ACCOUNT, BITCOIND_PASSWD, BITCOIND_TIMEOUT,
+				BITCOIND_ACCOUNT, BITCOIND_PASSWORD, BITCOIND_TIMEOUT,
 				BITCOIND_ALERT_PORT, BITCOIND_BLOCK_PORT, BITCOIND_WALLET_PORT);
 		BITCOIND_WITH_LISTENER.getAlertListener().addObserver(new Observer() {
 			@Override
@@ -137,10 +143,10 @@ public class BtcDaemonTest {
 	public void daemonNotifier() throws BtcException {
 		BtcDaemonNotifier
 				.notify(BITCOIND_HOST, BITCOIND_BLOCK_PORT,
-						"000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943");
+						BITCOIND_BLOCK_1);
 		BtcDaemonNotifier
 				.notify(BITCOIND_HOST, BITCOIND_WALLET_PORT,
-						"5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099");
+						BITCOIND_TRANSACTION_2);
 		try {
 			Thread.sleep(BITCOIND_NOTIFICATION_SLEEP);
 		} catch (InterruptedException e) {
@@ -162,10 +168,10 @@ public class BtcDaemonTest {
 		assertTrue(multiSig.length() >= 0);
 	}
 
-	@Ignore("bon't bother peers")
+	@Ignore("requires peer connection")
 	@Test
 	public void addNode() throws BtcException {
-		BITCOIND_WITH_LISTENER.addNode(BITCOIND_PEER_2, BtcNodeOperation.ONETRY);
+		BITCOIND_WITH_LISTENER.addNode(BITCOIND_PEER_2, BtcNode.Operation.ONETRY);
 		List<BtcPeer> peers = BITCOIND_WITHOUT_LISTENER.getPeerInformation();
 		assertNotNull(peers);
 		BtcPeer peer = new BtcPeer();
@@ -215,11 +221,6 @@ public class BtcDaemonTest {
 		assertEquals(BITCOIND_PRIVATE_KEY, privateKey);
 	}
 
-	@Test(expected = BtcException.class)
-	public void encryptWallet() throws BtcException {
-		BITCOIND_WITH_LISTENER.encryptWallet("");
-	}
-
 	@Test
 	public void getAccount() throws BtcException {
 		String account = BITCOIND_WITH_LISTENER.getAccount(BITCOIND_ADDRESS_1);
@@ -233,10 +234,34 @@ public class BtcDaemonTest {
 		assertNotNull(address);
 	}
 
+	@Ignore("requires peer connection")
 	@Test
 	public void getAddedNodeInformation() throws BtcException {
-		String info = BITCOIND_WITH_LISTENER.getAddedNodeInformation(false, "");
-		assertNotNull(info);
+		BITCOIND_WITH_LISTENER.addNode(BITCOIND_PEER_1, BtcNode.Operation.ADD);
+		try {
+			Thread.sleep(30000);
+		} catch (InterruptedException e) {
+		}
+		List<BtcAddedNode> addedNodes = BITCOIND_WITH_LISTENER.getAddedNodeInformation(true);
+		assertNotNull(addedNodes);
+		BtcAddedNode addedNode = addedNodes.get(0);
+		assertNotNull(addedNode);
+		assertEquals(BITCOIND_PEER_1, addedNode.getAddedNode());
+		addedNodes = BITCOIND_WITH_LISTENER.getAddedNodeInformation(true, BITCOIND_PEER_1);
+		assertNotNull(addedNodes);
+		addedNode = addedNodes.get(0);
+		assertNotNull(addedNode);
+		assertEquals(BITCOIND_PEER_1, addedNode.getAddedNode());
+		addedNodes = BITCOIND_WITH_LISTENER.getAddedNodeInformation(false, BITCOIND_PEER_1);
+		assertNotNull(addedNodes);
+		addedNode = addedNodes.get(0);
+		assertNotNull(addedNode);
+		assertEquals(BITCOIND_PEER_1, addedNode.getAddedNode());
+		addedNodes = BITCOIND_WITH_LISTENER.getAddedNodeInformation(false);
+		assertNotNull(addedNodes);
+		addedNode = addedNodes.get(0);
+		assertNotNull(addedNode);
+		assertEquals(BITCOIND_PEER_1, addedNode.getAddedNode());
 	}
 
 	@Test
@@ -249,27 +274,29 @@ public class BtcDaemonTest {
 
 	@Test
 	public void getBalance() throws BtcException {
-		double balance = BITCOIND_WITH_LISTENER.getBalance("", -1);
-		assertTrue(balance >= 0);
+		BigDecimal balance = BITCOIND_WITH_LISTENER.getBalance("", -1);
+		assertNotNull(balance);
+		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 		balance = BITCOIND_WITH_LISTENER.getBalance(BITCOIND_ACCOUNT, 2);
-		assertTrue(balance >= 0);
+		assertNotNull(balance);
+		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Test
 	public void getBlock() throws BtcException {
 		BtcBlock block = BITCOIND_WITH_LISTENER
-				.getBlock("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943");
+				.getBlock(BITCOIND_BLOCK_1);
 		assertNotNull(block);
 		assertEquals(
-				"000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943",
+				BITCOIND_BLOCK_1,
 				block.getHash());
 		assertEquals(0, block.getHeight());
 		assertEquals(1, block.getVersion());
 		block = BITCOIND_WITHOUT_LISTENER
-				.getBlock("00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206");
+				.getBlock(BITCOIND_BLOCK_2);
 		assertNotNull(block);
 		assertEquals(
-				"00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206",
+				BITCOIND_BLOCK_2,
 				block.getHash());
 		List<BtcTransaction> transactions = block.getTransactions();
 		assertNotNull(transactions);
@@ -307,8 +334,9 @@ public class BtcDaemonTest {
 
 	@Test
 	public void getDifficulty() throws BtcException {
-		double difficulty = BITCOIND_WITH_LISTENER.getDifficulty();
-		assertTrue(difficulty >= 0);
+		BigDecimal difficulty = BITCOIND_WITH_LISTENER.getDifficulty();
+		assertNotNull(difficulty);
+		assertTrue(difficulty.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Test
@@ -336,7 +364,9 @@ public class BtcDaemonTest {
 		BtcMiningInfo info = BITCOIND_WITH_LISTENER.getMiningInformation();
 		assertNotNull(info);
 		assertTrue(info.isTestnet());
-		assertTrue(info.getDifficulty() >= 0);
+		BigDecimal difficulty = info.getDifficulty();
+		assertNotNull(difficulty);
+		assertTrue(difficulty.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Ignore("generates new address")
@@ -371,36 +401,40 @@ public class BtcDaemonTest {
 		assertTrue(rawMemPool.size() >= 0);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void getRawTransaction() throws BtcException {
-		BITCOIND_WITH_LISTENER.getRawTransaction("", false);
+		String rawTransaction = BITCOIND_WITH_LISTENER.getRawTransaction(BITCOIND_TRANSACTION_1, true);
+		assertNotNull(rawTransaction);
 	}
 
 	@Test
 	public void getReceivedByAccount() throws BtcException {
-		double balance = BITCOIND_WITH_LISTENER.getReceivedByAccount("");
-		assertTrue(balance >= 0);
+		BigDecimal balance = BITCOIND_WITH_LISTENER.getReceivedByAccount("");
+		assertNotNull(balance);
+		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 		balance = BITCOIND_WITHOUT_LISTENER.getReceivedByAccount(
 				BITCOIND_ACCOUNT, 2);
-		assertTrue(balance >= 0);
+		assertNotNull(balance);
+		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Test
 	public void getReceivedByAddress() throws BtcException {
-		double balance = BITCOIND_WITH_LISTENER
+		BigDecimal balance = BITCOIND_WITH_LISTENER
 				.getReceivedByAddress(BITCOIND_ADDRESS_1);
-		assertTrue(balance >= 0);
+		assertNotNull(balance);
+		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Test
 	public void getTransaction() throws BtcException {
 		BtcTransaction transaction = BITCOIND_WITH_LISTENER
-				.getTransaction("5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099");
+				.getTransaction(BITCOIND_TRANSACTION_2);
 		assertNotNull(transaction);
 		List<BtcTransactionDetail> details = transaction.getDetails();
 		assertNotNull(details);
 		transaction = BITCOIND_WITHOUT_LISTENER
-				.getTransaction("98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082");
+				.getTransaction(BITCOIND_TRANSACTION_1);
 		assertNotNull(transaction);
 		details = transaction.getDetails();
 		assertNotNull(details);
@@ -492,7 +526,9 @@ public class BtcDaemonTest {
 		assertTrue(size >= 0);
 		if (size > 0) {
 			BtcAccount account = accounts.get(0);
-			assertTrue(account.getAmount() >= 0);
+			BigDecimal amount = account.getAmount();
+			assertNotNull(amount);
+			assertTrue(amount.compareTo(BigDecimal.ZERO) >= 0);
 		}
 	}
 
@@ -507,7 +543,9 @@ public class BtcDaemonTest {
 		assertTrue(size >= 0);
 		if (size > 0) {
 			BtcAddress address = addresses.get(0);
-			assertTrue(address.getAmount() >= 0);
+			BigDecimal amount = address.getAmount();
+			assertNotNull(amount);
+			assertTrue(amount.compareTo(BigDecimal.ZERO) >= 0);
 		}
 	}
 
@@ -517,7 +555,7 @@ public class BtcDaemonTest {
 		assertNotNull(lastBlock);
 		lastBlock = BITCOIND_WITH_LISTENER
 				.listSinceBlock(
-						"00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206",
+						BITCOIND_BLOCK_1,
 						0);
 		assertNotNull(lastBlock);
 	}
@@ -543,12 +581,12 @@ public class BtcDaemonTest {
 
 	@Test(expected = BtcException.class)
 	public void move() throws BtcException {
-		BITCOIND_WITH_LISTENER.move("", "", 0, 0, "");
+		BITCOIND_WITH_LISTENER.move("", "", BigDecimal.ZERO, 0, "");
 	}
 
 	@Test(expected = BtcException.class)
 	public void sendFrom() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendFrom("", "", 0, 0, "", "");
+		BITCOIND_WITH_LISTENER.sendFrom("", "", BigDecimal.ZERO, 0, "", "");
 	}
 
 	@Test(expected = BtcException.class)
@@ -563,7 +601,7 @@ public class BtcDaemonTest {
 
 	@Test(expected = BtcException.class)
 	public void sendToAddress() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendToAddress("", 0, "", "");
+		BITCOIND_WITH_LISTENER.sendToAddress("", BigDecimal.ZERO, "", "");
 	}
 
 	@Ignore("generates new address")
@@ -588,8 +626,8 @@ public class BtcDaemonTest {
 
 	@Test
 	public void setTransactionFee() throws BtcException {
-		assertTrue(BITCOIND_WITH_LISTENER.setTransactionFee(0.00000001));
-		assertTrue(BITCOIND_WITH_LISTENER.setTransactionFee(-1));
+		assertTrue(BITCOIND_WITH_LISTENER.setTransactionFee(BigDecimal.valueOf(0.00000001)));
+		assertTrue(BITCOIND_WITH_LISTENER.setTransactionFee(BigDecimal.valueOf(-1)));
 	}
 
 	@Test(expected = BtcException.class)

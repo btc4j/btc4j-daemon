@@ -8,11 +8,11 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * Apache Commons HttpClient API (org.apache.commons.httpclient)
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
-bitcoind API development status (out of a total of 59 commands):
-* Completed and verified: 37
+bitcoind API development status (out of a total of 58 commands):
+* Completed and verified: 39
 * Completed but not verified: 1
-* Work in progress: 5
-* Not yet implemented: 16
+* Work in progress: 4
+* Not yet implemented: 14
 
 Notification subsystem development status:
 * Notifier: complete

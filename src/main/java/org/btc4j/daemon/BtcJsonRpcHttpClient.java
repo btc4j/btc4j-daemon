@@ -26,6 +26,7 @@ package org.btc4j.daemon;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,16 +50,17 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.btc4j.core.BtcAccount;
+import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
 import org.btc4j.core.BtcMultiSignatureAddress;
+import org.btc4j.core.BtcNode;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcTransaction;
-import org.btc4j.core.BtcTransactionCategory;
 import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
 
@@ -118,6 +120,10 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTCOBJ_INFO_WALLET_VERSION = "walletversion";
 	private static final String BTCOBJ_LASTBLOCK_LASTBLOCK = "lastblock";
 	private static final String BTCOBJ_LASTBLOCK_TRANSACTIONS = "transactions";
+	private static final String BTCOBJ_NODE_ADDED_NODE = "addednode";
+	private static final String BTCOBJ_NODE_CONNECTED = "connected";
+	private static final String BTCOBJ_NODE_ADDRESSES = "addresses";
+	private static final String BTCOBJ_NODE_ADDRESS = "address";
 	private static final String BTCOBJ_PEER_ADDRESS = "addr";
 	private static final String BTCOBJ_PEER_BAN_SCORE = "banscore";
 	private static final String BTCOBJ_PEER_BYTES_RECEIVED = "bytesrecv";
@@ -262,12 +268,27 @@ public class BtcJsonRpcHttpClient {
 		account.setAccount(value.getString(BTCOBJ_ACCOUNT_ACCOUNT, ""));
 		JsonNumber amount = value.getJsonNumber(BTCOBJ_ACCOUNT_AMOUNT);
 		if (amount != null) {
-			account.setAmount(amount.doubleValue());
+			account.setAmount(amount.bigDecimalValue());
 		}
 		account.setConfirmations(value.getInt(BTCOBJ_ACCOUNT_CONFIRMATIONS, 0));
 		return account;
 	}
-
+	
+	public BtcAddedNode jsonAddedNode(JsonObject value) {
+		BtcAddedNode addedNode = new BtcAddedNode();
+		addedNode.setAddedNode(value.getString(BTCOBJ_NODE_ADDED_NODE, ""));
+		addedNode.setConnected(value.getBoolean(BTCOBJ_NODE_CONNECTED, false));
+		List<BtcNode> nodes = new ArrayList<BtcNode>();
+		JsonArray addresses = (JsonArray) value.get(BTCOBJ_NODE_ADDRESSES);
+		if (addresses != null) {
+			for (JsonObject address : addresses.getValuesAs(JsonObject.class)) {
+				nodes.add(jsonNode(address));
+			}
+		}
+		addedNode.setAddresses(nodes);
+		return addedNode;
+	}
+	
 	public BtcAddress jsonAddress(JsonObject value) {
 		BtcAddress address = new BtcAddress();
 		address.setValid(value.getBoolean(BTCOBJ_ADDRESS_VALID, false));
@@ -282,7 +303,7 @@ public class BtcJsonRpcHttpClient {
 		address.setAccount(account);
 		JsonNumber amount = value.getJsonNumber(BTCOBJ_ADDRESS_AMOUNT);
 		if (amount != null) {
-			address.setAmount(amount.doubleValue());
+			address.setAmount(amount.bigDecimalValue());
 		}
 		address.setConfirmations(value.getInt(BTCOBJ_ADDRESS_CONFIRMATIONS, 0));
 		return address;
@@ -313,7 +334,7 @@ public class BtcJsonRpcHttpClient {
 		block.setBits(value.getString(BTCOBJ_BLOCK_BITS, ""));
 		JsonNumber difficulty = value.getJsonNumber(BTCOBJ_BLOCK_DIFFICULTY);
 		if (difficulty != null) {
-			block.setDifficulty(difficulty.doubleValue());
+			block.setDifficulty(difficulty.bigDecimalValue());
 		}
 		block.setPreviousBlockHash(value.getString(
 				BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
@@ -329,7 +350,7 @@ public class BtcJsonRpcHttpClient {
 		info.setWalletVersion(value.getInt(BTCOBJ_INFO_WALLET_VERSION, 0));
 		JsonNumber balance = value.getJsonNumber(BTCOBJ_INFO_BALANCE);
 		if (balance != null) {
-			info.setBalance(balance.doubleValue());
+			info.setBalance(balance.bigDecimalValue());
 		}
 		info.setBlocks(value.getInt(BTCOBJ_INFO_BLOCKS, 0));
 		info.setTimeOffset(value.getInt(BTCOBJ_INFO_TIME_OFFSET, 0));
@@ -337,7 +358,7 @@ public class BtcJsonRpcHttpClient {
 		info.setProxy(value.getString(BTCOBJ_INFO_PROXY, ""));
 		JsonNumber difficulty = value.getJsonNumber(BTCOBJ_INFO_DIFFICULTY);
 		if (difficulty != null) {
-			info.setDifficulty(difficulty.doubleValue());
+			info.setDifficulty(difficulty.bigDecimalValue());
 		}
 		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
 		info.setKeyPoolOldest(value.getInt(BTCOBJ_INFO_KEYPOOL_OLDEST, 0));
@@ -345,7 +366,7 @@ public class BtcJsonRpcHttpClient {
 		JsonNumber transactionFee = value
 				.getJsonNumber(BTCOBJ_INFO_TRANSACTION_FEE);
 		if (transactionFee != null) {
-			info.setTransactionFee(transactionFee.doubleValue());
+			info.setTransactionFee(transactionFee.bigDecimalValue());
 		}
 		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
 		return info;
@@ -374,7 +395,7 @@ public class BtcJsonRpcHttpClient {
 				BTCOBJ_INFO_CURRENT_BLOCK_TRANSACTIONS, 0));
 		JsonNumber difficulty = value.getJsonNumber(BTCOBJ_INFO_DIFFICULTY);
 		if (difficulty != null) {
-			info.setDifficulty(difficulty.doubleValue());
+			info.setDifficulty(difficulty.bigDecimalValue());
 		}
 		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
 		info.setGenerate(value.getBoolean(BTCOBJ_INFO_GENERATE, false));
@@ -394,6 +415,14 @@ public class BtcJsonRpcHttpClient {
 				""));
 		return address;
 	}
+	
+	public BtcNode jsonNode(JsonObject value) {
+		BtcNode node = new BtcNode();
+		node.setAddress(value.getString(BTCOBJ_NODE_ADDRESS, ""));
+		node.setConnected(value.getString(BTCOBJ_NODE_CONNECTED, ""));
+		return node;
+	}
+		
 
 	public BtcPeer jsonPeer(JsonObject value) throws BtcException {
 		BtcPeer peer = new BtcPeer();
@@ -418,7 +447,7 @@ public class BtcJsonRpcHttpClient {
 		transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
 		JsonNumber amount = value.getJsonNumber(BTCOBJ_TX_AMOUNT);
 		if (amount != null) {
-			transaction.setAmount(amount.doubleValue());
+			transaction.setAmount(amount.bigDecimalValue());
 		}
 		transaction.setConfirmations(value.getInt(BTCOBJ_TX_CONFIRMATIONS, 0));
 		transaction.setTime(value.getInt(BTCOBJ_TX_TIME, 0));
@@ -444,15 +473,15 @@ public class BtcJsonRpcHttpClient {
 		BtcTransactionDetail detail = new BtcTransactionDetail();
 		detail.setAccount(value.getString(BTCOBJ_TXDETAIL_ACCOUNT, ""));
 		detail.setAddress(value.getString(BTCOBJ_TXDETAIL_ADDRESS, ""));
-		detail.setCategory(BtcTransactionCategory.getValue(value.getString(
+		detail.setCategory(BtcTransaction.Category.getValue(value.getString(
 				BTCOBJ_TXDETAIL_CATEGORY, "")));
 		JsonNumber amount = value.getJsonNumber(BTCOBJ_TXDETAIL_AMOUNT);
 		if (amount != null) {
-			detail.setAmount(amount.doubleValue());
+			detail.setAmount(amount.bigDecimalValue());
 		}
 		JsonNumber fee = value.getJsonNumber(BTCOBJ_TXDETAIL_FEE);
 		if (fee != null) {
-			detail.setFee(amount.doubleValue());
+			detail.setFee(amount.bigDecimalValue());
 		}
 		return detail;
 	}
@@ -471,7 +500,7 @@ public class BtcJsonRpcHttpClient {
 				BTCOBJ_TXOUTPUTSET_HASH_SERIALIZED, ""));
 		JsonNumber amount = value.getJsonNumber(BTCOBJ_TXOUTPUTSET_TOTAL_AMOUT);
 		if (amount != null) {
-			output.setTotalAmount(amount.doubleValue());
+			output.setTotalAmount(amount.bigDecimalValue());
 		}
 		return output;
 	}
@@ -480,15 +509,20 @@ public class BtcJsonRpcHttpClient {
 		return (val == null)? "": val;
 	}
 	
-	public int min(int val, int min) {
-		return (val < min)? min: val;
+	public int floor(int val, int floor) {
+		return (val < floor)? floor: val;
 	}
 	
-	public double min(double val, double min) {
-		return (val < min)? min: val;
+	public BigDecimal floor(BigDecimal val, double floor) {
+		BigDecimal min = BigDecimal.valueOf(floor);
+		return (val == null)? min: ((val.compareTo(min) < 0)? min: val);
 	}
 	
 	public String nil(String val) {
-		return (val == null)? null: (val.length() > 0? val: null);
+		return (val == null)? null: ((val.length() > 0)? val: null);
+	}
+	
+	public int bool(boolean val) {
+		return val? 1: 0;
 	}
 }
