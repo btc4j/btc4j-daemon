@@ -30,6 +30,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -58,14 +59,17 @@ import org.junit.Test;
 
 public class BtcDaemonTest {
 	private static final boolean BITCOIND_STOP = false;
+	private static final boolean BITCOIND_SSL = false;
 	private static final String BITCOIND_HOST = "127.0.0.1";
 	private static final String BITCOIND_URL = "http://" + BITCOIND_HOST
 			+ ":18332";
+	private static final String BITCOIND_URL_SSL = "https://" + BITCOIND_HOST
+			+ ":18332";
 	private static final String BITCOIND_ACCOUNT = "user";
 	private static final String BITCOIND_PASSWORD = "password";
-	private static final long BITCOIND_TIMEOUT = 10000;
-	private static final long BITCOIND_NOTIFICATION_SLEEP = 30000;
-	private static final long BITCOIND_WALLET_TIMEOUT = 300;
+	private static final int BITCOIND_TIMEOUT = 10000;
+	private static final int BITCOIND_NOTIFICATION_SLEEP = 30000;
+	private static final int BITCOIND_WALLET_TIMEOUT = 300;
 	private static final int BITCOIND_ALERT_PORT = 18334;
 	private static final int BITCOIND_BLOCK_PORT = 18335;
 	private static final int BITCOIND_WALLET_PORT = 18336;
@@ -95,11 +99,12 @@ public class BtcDaemonTest {
 
 	@BeforeClass
 	public static void init() throws Exception {
-		BITCOIND_WITHOUT_LISTENER = new BtcDaemon(new URL(BITCOIND_URL),
+		URL url = BITCOIND_SSL? new URL(BITCOIND_URL_SSL): new URL(BITCOIND_URL);
+		BITCOIND_WITHOUT_LISTENER = new BtcDaemon(url,
 				BITCOIND_ACCOUNT, BITCOIND_PASSWORD, BITCOIND_TIMEOUT);
 		BITCOIND_WITHOUT_LISTENER.walletLock();
 		BITCOIND_WITHOUT_LISTENER.walletPassphrase(BITCOIND_PASSWORD, BITCOIND_WALLET_TIMEOUT);
-		BITCOIND_WITH_LISTENER = new BtcDaemon(new URL(BITCOIND_URL),
+		BITCOIND_WITH_LISTENER = new BtcDaemon(url,
 				BITCOIND_ACCOUNT, BITCOIND_PASSWORD, BITCOIND_TIMEOUT,
 				BITCOIND_ALERT_PORT, BITCOIND_BLOCK_PORT, BITCOIND_WALLET_PORT);
 		BITCOIND_WITH_LISTENER.walletLock();
@@ -591,19 +596,24 @@ public class BtcDaemonTest {
 		BITCOIND_WITH_LISTENER.lockUnspent(false, new ArrayList<Object>());
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void move() throws BtcException {
-		BITCOIND_WITH_LISTENER.move("", "", BigDecimal.ZERO, 0, "");
+		boolean move = BITCOIND_WITH_LISTENER.move("", BITCOIND_ACCOUNT, BigDecimal.ONE, 2, "test one");
+		assertTrue(move);
+		move = BITCOIND_WITH_LISTENER.move(BITCOIND_ACCOUNT, "", BigDecimal.ONE);
+		assertTrue(move);
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("wip")
+	@Test
 	public void sendFrom() throws BtcException {
 		BITCOIND_WITH_LISTENER.sendFrom("", "", BigDecimal.ZERO, 0, "", "");
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("wip")
+	@Test
 	public void sendMany() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendMany("", new ArrayList<Object>(), 0, "", "");
+		BITCOIND_WITH_LISTENER.sendMany("", new HashMap<String, BigDecimal>(), 0, "", "");
 	}
 
 	@Test(expected = BtcException.class)
@@ -611,7 +621,8 @@ public class BtcDaemonTest {
 		BITCOIND_WITH_LISTENER.sendRawTransaction("");
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("wip")
+	@Test
 	public void sendToAddress() throws BtcException {
 		BITCOIND_WITH_LISTENER.sendToAddress("", BigDecimal.ZERO, "", "");
 	}

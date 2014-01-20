@@ -7,8 +7,8 @@ public class BtcDaemonMain {
 	public static void main(String[] args) {
 		try {
 			BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"), "user", "password", 10000);
-			daemon.help();
-			// daemon.stop();
+			//daemon.help("sendtoaddress");
+			daemon.stop();
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}

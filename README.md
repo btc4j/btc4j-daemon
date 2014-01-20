@@ -1,17 +1,17 @@
 Bitcoin Java Daemon (btc4j-daemon)
 ==================================
-Type-safe, open source Java - bitcoind bridge.
+Type-safe, open source Java - bitcoind wrapper.
 
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
 btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
-* Apache Commons HttpClient API (org.apache.commons.httpclient)
+* Apache HTTP Components (org.apache.http)
 * Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
 
 bitcoind API development status (out of a total of 61 commands):
-* Completed and verified: 48
+* Completed and verified: 52
 * Work in progress: 1
-* Not yet implemented: 12
+* Not yet implemented: 8
 
 Notification subsystem development status:
 * Notifier: complete
@@ -36,7 +36,7 @@ Connect to a bitcoind process:
 ```java
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
 						"user", "password", 30000);
-BtcStatus info = daemon.getInfo();
+BtcInfo info = daemon.getInfo();
 String address = daemon.getAccountAddress("user");
 String stop = daemon.stop(); // will stop bitcoind 
 ```
@@ -53,7 +53,7 @@ daemon.getWalletListener().addObserver(new Observer() {
 		}
 	}
 });
-double amount = daemon.getReceivedByAccount("user");
+BigDecimal amount = daemon.getReceivedByAccount("user");
 daemon.backupWallet(new File("wallet.dat"));
 daemon.stopListening(); // stops the listeners if notifications enabled
 String stop = daemon.stop(); // will stop bitcoind

@@ -54,7 +54,7 @@
 		<maven.source.version>2.2.1</maven.source.version>
 		<maven.gpg.version>1.4</maven.gpg.version>
 		<btc4j.core.version>0.0.3-SNAPSHOT</btc4j.core.version>
-		<commons.httpclient.version>3.1</commons.httpclient.version>
+		<apache.httpclient.version>4.3.1</apache.httpclient.version>
 		<javax.json.version>1.0.4</javax.json.version>
 		<junit.version>4.11</junit.version>
 	</properties>
@@ -120,9 +120,9 @@
 			<version>${btc4j.core.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
-			<version>${commons.httpclient.version}</version>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${apache.httpclient.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish</groupId>

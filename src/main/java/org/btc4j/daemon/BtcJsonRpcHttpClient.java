@@ -41,14 +41,23 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
@@ -76,6 +85,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTC4J_DAEMON_HTTP_HEADER = "Content-Type";
 	private static final String BTC4J_DAEMON_JSON_CONTENT_TYPE = "application/json";
 	private static final String BTC4J_DAEMON_JSONRPC_CONTENT_TYPE = "application/json-rpc";
+	private static final String BTC4J_DAEMON_CHARSET = "UTF-8";
 	private static final String BTCOBJ_ACCOUNT_ACCOUNT = "account";
 	private static final String BTCOBJ_ACCOUNT_AMOUNT = "amount";
 	private static final String BTCOBJ_ACCOUNT_CONFIRMATIONS = "confirmations";
@@ -183,7 +193,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String JSONRPC_DATA = "data";
 	private static final String JSONRPC_ERROR = "error";
 	private static final String JSONRPC_ID = "id";
-	private static final String JSONRPC_JSONRPC = "jsonrpc";
+	private static final String JSONRPC_REALM = "jsonrpc";
 	private static final String JSONRPC_MESSAGE = "message";
 	private static final String JSONRPC_METHOD = "method";
 	private static final String JSONRPC_PARAMS = "params";
@@ -191,18 +201,25 @@ public class BtcJsonRpcHttpClient {
 	private static final String JSONRPC_VERSION = "2.0";
 	private final static Logger LOGGER = Logger
 			.getLogger(BtcJsonRpcHttpClient.class.getName());
-	private HttpClientParams params;
-	private HttpState state;
+	private CredentialsProvider credentialsProvider;
+	private RequestConfig requestConfig; 
 	private URL url;
 
 	public BtcJsonRpcHttpClient(URL url, String account, String password,
-			long timeout) {
+			int timeout) {
 		this.url = url;
-		state = new HttpState();
-		state.setCredentials(new AuthScope(url.getHost(), url.getPort()),
-				new UsernamePasswordCredentials(account, password));
-		params = new HttpClientParams();
-		params.setConnectionManagerTimeout(timeout);
+		credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(
+                new AuthScope(url.getHost(), url.getPort(), JSONRPC_REALM),
+                new UsernamePasswordCredentials(account, password));
+		requestConfig = RequestConfig.custom()
+				.setAuthenticationEnabled(true)
+				.setConnectionRequestTimeout(timeout)
+				.setConnectTimeout(timeout)
+				.setSocketTimeout(timeout)
+				.setStaleConnectionCheckEnabled(true)
+				.build();
+		// TODO ssl
 	}
 
 	public JsonValue invoke(String method) throws BtcException {
@@ -217,13 +234,17 @@ public class BtcJsonRpcHttpClient {
 					BtcException.BTC4J_ERROR_MESSAGE + ": "
 							+ BTC4J_DAEMON_DATA_NULL_URL);
 		}
-		PostMethod post = new PostMethod(url.toString());
-		try {
-			post.setRequestHeader(BTC4J_DAEMON_HTTP_HEADER,
-					BTC4J_DAEMON_JSONRPC_CONTENT_TYPE);
+		
+		try (CloseableHttpClient client = HttpClients.custom()
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setDefaultRequestConfig(requestConfig)
+                .disableAutomaticRetries()
+                .build();) {
+			HttpPost post = new HttpPost(url.toString());
+			post.addHeader(BTC4J_DAEMON_HTTP_HEADER, BTC4J_DAEMON_JSONRPC_CONTENT_TYPE);
 			String guid = UUID.randomUUID().toString();
 			JsonObjectBuilder builder = Json.createObjectBuilder();
-			builder.add(JSONRPC_JSONRPC, JSONRPC_VERSION).add(JSONRPC_METHOD,
+			builder.add(JSONRPC_REALM, JSONRPC_VERSION).add(JSONRPC_METHOD,
 					method);
 			if (parameters != null) {
 				builder.add(JSONRPC_PARAMS, parameters);
@@ -233,29 +254,36 @@ public class BtcJsonRpcHttpClient {
 			builder.add(JSONRPC_ID, guid);
 			JsonObject request = builder.build();
 			LOGGER.info("request: " + request);
-			post.setRequestEntity(new StringRequestEntity(request.toString(),
-					BTC4J_DAEMON_JSON_CONTENT_TYPE, null));
-			HttpClient client = new HttpClient(params);
-			client.setState(state);
-			int status = client.executeMethod(post);
-			if (status != HttpStatus.SC_OK) {
-				LOGGER.severe(status + " " + HttpStatus.getStatusText(status));
-				throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-						BtcException.BTC4J_ERROR_MESSAGE + ": " + status + " "
-								+ HttpStatus.getStatusText(status));
-			}
-			JsonObject response = (JsonObject) Json.createReader(
-					new StringReader(post.getResponseBodyAsString())).read();
-			if (response == null) {
+			post.setEntity(new StringEntity(request.toString(),
+					ContentType.create(BTC4J_DAEMON_JSON_CONTENT_TYPE, BTC4J_DAEMON_CHARSET)));
+			ResponseHandler<String> handler = new ResponseHandler<String>() {
+				@Override
+				public String handleResponse(HttpResponse response)
+						throws ClientProtocolException, IOException {
+					StatusLine status = response.getStatusLine();
+					int code = status.getStatusCode();
+					String phrase = status.getReasonPhrase();
+					HttpEntity entity = response.getEntity();
+					String results = (entity != null) ? EntityUtils.toString(entity) : "";
+					if (code != HttpStatus.SC_OK) {
+						LOGGER.severe(code + " " + phrase);
+						throw new ClientProtocolException(code + " " + phrase);
+					}
+					return results;
+				}
+			};
+			JsonObject results = (JsonObject) Json.createReader(
+					new StringReader(client.execute(post, handler))).read();
+			if (results == null) {
 				LOGGER.severe(BTC4J_DAEMON_DATA_NULL_RESPONSE);
 				throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 						BtcException.BTC4J_ERROR_MESSAGE + ": "
 								+ BTC4J_DAEMON_DATA_NULL_RESPONSE);
 			}
-			LOGGER.info("response: " + response);
-			JsonString id = response.getJsonString(JSONRPC_ID);
+			LOGGER.info("response: " + results);
+			JsonString id = results.getJsonString(JSONRPC_ID);
 			if (id == null) {
-				JsonObject error = response.getJsonObject(JSONRPC_ERROR);
+				JsonObject error = results.getJsonObject(JSONRPC_ERROR);
 				if (error != null) {
 					JsonObject data = error.getJsonObject(JSONRPC_DATA);
 					LOGGER.severe(String.valueOf(data));
@@ -274,13 +302,11 @@ public class BtcJsonRpcHttpClient {
 						BtcException.BTC4J_ERROR_MESSAGE + ": "
 								+ BTC4J_DAEMON_DATA_INVALID_ID);
 			}
-			return response.get(JSONRPC_RESULT);
-		} catch (NullPointerException | ClassCastException | IOException e) {
+			return results.get(JSONRPC_RESULT);
+		} catch (IOException e) {
 			LOGGER.severe(String.valueOf(e));
 			throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 					BtcException.BTC4J_ERROR_MESSAGE + ": " + e.getMessage(), e);
-		} finally {
-			post.releaseConnection();
 		}
 	}
 
