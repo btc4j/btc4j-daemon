@@ -59,13 +59,14 @@ import org.junit.Test;
 
 public class BtcDaemonTest {
 	private static final boolean BITCOIND_STOP = false;
-	private static final boolean BITCOIND_SSL = false;
+	private static final boolean BITCOIND_SSL = true;
 	private static final String BITCOIND_HOST = "127.0.0.1";
 	private static final String BITCOIND_URL = "http://" + BITCOIND_HOST
 			+ ":18332";
 	private static final String BITCOIND_URL_SSL = "https://" + BITCOIND_HOST
 			+ ":18332";
 	private static final String BITCOIND_ACCOUNT = "user";
+	private static final String BITCOIND_ACCOUNT_DEFAULT = "";
 	private static final String BITCOIND_PASSWORD = "password";
 	private static final int BITCOIND_TIMEOUT = 10000;
 	private static final int BITCOIND_NOTIFICATION_SLEEP = 30000;
@@ -79,6 +80,7 @@ public class BtcDaemonTest {
 	private static final String BITCOIND_ADDRESS_2 = "mhkM5pS8Jfot5snS7H4AK2xyRbJ8erUNWc";
 	private static final String BITCOIND_ADDRESS_3 = "mmqnw2wasfhRAwpKq6dD7jjBfs4ViBdkm3";
 	private static final String BITCOIND_ADDRESS_4 = "n3e8rHyJHx1wxrLkQwzkeXz6poJt549nkG";
+	private static final String BITCOIND_ADDRESS_5 = "muddTzjPesBasNJNyYNAS4ncqVECC18Edh";
 	private static final String BITCOIND_BLOCK_1 = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
 	private static final String BITCOIND_BLOCK_2 = "00000000b873e79784647a6c82962c70d228557d24a747ea4d1b8bbe878e1206";
 	private static final String BITCOIND_TRANSACTION_1 = "98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082";
@@ -596,18 +598,36 @@ public class BtcDaemonTest {
 		BITCOIND_WITH_LISTENER.lockUnspent(false, new ArrayList<Object>());
 	}
 
+	@Ignore("moves bitcoins")
 	@Test
 	public void move() throws BtcException {
 		boolean move = BITCOIND_WITH_LISTENER.move("", BITCOIND_ACCOUNT, BigDecimal.ONE, 2, "test one");
 		assertTrue(move);
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+		}
 		move = BITCOIND_WITH_LISTENER.move(BITCOIND_ACCOUNT, "", BigDecimal.ONE);
 		assertTrue(move);
 	}
 
-	@Ignore("wip")
+	@Ignore("moves bitcoins")
 	@Test
 	public void sendFrom() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendFrom("", "", BigDecimal.ZERO, 0, "", "");
+		String transactionId = BITCOIND_WITH_LISTENER.sendFrom(BITCOIND_ACCOUNT_DEFAULT, BITCOIND_ADDRESS_5, BigDecimal.valueOf(0.002));
+		assertNotNull(transactionId);
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+		}
+		BtcTransaction transaction = BITCOIND_WITHOUT_LISTENER.getTransaction(transactionId);
+		assertNotNull(transaction);
+		assertEquals(transactionId, transaction.getTransaction());
+		for (BtcTransactionDetail detail: transaction.getDetails()) {
+			if (BtcTransaction.Category.RECEIVE.equals(detail.getCategory())) {
+				assertEquals(BITCOIND_ADDRESS_5, detail.getAddress());
+			}
+		}
 	}
 
 	@Ignore("wip")
@@ -699,7 +719,7 @@ public class BtcDaemonTest {
 		String newPassphrase = "password2";
 		BITCOIND_WITHOUT_LISTENER.walletPassphraseChange(BITCOIND_PASSWORD, newPassphrase);
 		try {
-			Thread.sleep(BITCOIND_TIMEOUT);
+			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 		}
 		BITCOIND_WITHOUT_LISTENER.walletPassphraseChange(newPassphrase, BITCOIND_PASSWORD);

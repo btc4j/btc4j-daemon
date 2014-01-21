@@ -40,6 +40,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -78,7 +79,6 @@ import org.btc4j.core.BtcTransactionInput;
 import org.btc4j.core.BtcTransactionOutput;
 
 public class BtcJsonRpcHttpClient {
-	private static final String BTC4J_DAEMON_DATA_INVALID_ERROR = "response error is empty";
 	private static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
 	private static final String BTC4J_DAEMON_DATA_NULL_RESPONSE = "response is empty";
 	private static final String BTC4J_DAEMON_DATA_NULL_URL = "server URL is null";
@@ -86,6 +86,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTC4J_DAEMON_JSON_CONTENT_TYPE = "application/json";
 	private static final String BTC4J_DAEMON_JSONRPC_CONTENT_TYPE = "application/json-rpc";
 	private static final String BTC4J_DAEMON_CHARSET = "UTF-8";
+	private static final int BTC4J_DAEMON_TIMEOUT = 10000;
 	private static final String BTCOBJ_ACCOUNT_ACCOUNT = "account";
 	private static final String BTCOBJ_ACCOUNT_AMOUNT = "amount";
 	private static final String BTCOBJ_ACCOUNT_CONFIRMATIONS = "confirmations";
@@ -157,6 +158,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTCOBJ_SCRIPT_TYPE = "type";
 	private static final String BTCOBJ_SCRIPT_ADDRESSES = "addresses";
 	private static final String BTCOBJ_TX_AMOUNT = "amount";
+	private static final String BTCOBJ_TX_FEE = "fee";
 	private static final String BTCOBJ_TX_BLOCK_HASH = "blockhash";
 	private static final String BTCOBJ_TX_BLOCK_INDEX = "blockindex";
 	private static final String BTCOBJ_TX_BLOCK_TIME = "blocktime";
@@ -219,7 +221,10 @@ public class BtcJsonRpcHttpClient {
 				.setSocketTimeout(timeout)
 				.setStaleConnectionCheckEnabled(true)
 				.build();
-		// TODO ssl
+	}
+	
+	public BtcJsonRpcHttpClient(URL url, String account, String password) {
+		this(url, account, password, BTC4J_DAEMON_TIMEOUT);
 	}
 
 	public JsonValue invoke(String method) throws BtcException {
@@ -265,7 +270,7 @@ public class BtcJsonRpcHttpClient {
 					String phrase = status.getReasonPhrase();
 					HttpEntity entity = response.getEntity();
 					String results = (entity != null) ? EntityUtils.toString(entity) : "";
-					if (code != HttpStatus.SC_OK) {
+					if ((code != HttpStatus.SC_OK) && (code != HttpStatus.SC_INTERNAL_SERVER_ERROR)) {
 						LOGGER.severe(code + " " + phrase);
 						throw new ClientProtocolException(code + " " + phrase);
 					}
@@ -281,26 +286,22 @@ public class BtcJsonRpcHttpClient {
 								+ BTC4J_DAEMON_DATA_NULL_RESPONSE);
 			}
 			LOGGER.info("response: " + results);
-			JsonString id = results.getJsonString(JSONRPC_ID);
-			if (id == null) {
-				JsonObject error = results.getJsonObject(JSONRPC_ERROR);
-				if (error != null) {
-					JsonObject data = error.getJsonObject(JSONRPC_DATA);
-					LOGGER.severe(String.valueOf(data));
-					throw new BtcException(error.getInt(JSONRPC_CODE),
-							error.get(JSONRPC_MESSAGE) + ": " + data);
-				} else {
-					LOGGER.severe(BTC4J_DAEMON_DATA_INVALID_ERROR);
-					throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-							BtcException.BTC4J_ERROR_MESSAGE + ": "
-									+ BTC4J_DAEMON_DATA_INVALID_ERROR);
-				}
-			}
-			if (!guid.equals(id.getString())) {
+			JsonString id = (JsonString) results.get(JSONRPC_ID);
+			if ((id == null) || !(guid.equals(id.getString()))) {
 				LOGGER.severe(BTC4J_DAEMON_DATA_INVALID_ID);
 				throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 						BtcException.BTC4J_ERROR_MESSAGE + ": "
 								+ BTC4J_DAEMON_DATA_INVALID_ID);
+			}
+			JsonValue error = results.get(JSONRPC_ERROR);
+			if ((error != null) && (error.getValueType().equals(ValueType.OBJECT))) {
+				JsonObject errorObj = (JsonObject) error;
+				int code = errorObj.getInt(JSONRPC_CODE);
+				String message = errorObj.getString(JSONRPC_MESSAGE); 
+				JsonObject data = (JsonObject) errorObj.get(JSONRPC_DATA);
+				String dataStr = (data == null)? "": (" " + String.valueOf(data));
+				LOGGER.severe("error: " + code + " " + message + dataStr);
+				throw new BtcException(code, message + dataStr);
 			}
 			return results.get(JSONRPC_RESULT);
 		} catch (IOException e) {
@@ -519,6 +520,7 @@ public class BtcJsonRpcHttpClient {
 		BtcTransaction transaction = new BtcTransaction();
 		transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
 		transaction.setAmount(jsonDouble(value, BTCOBJ_TX_AMOUNT));
+		transaction.setFee(jsonDouble(value, BTCOBJ_TX_FEE));
 		transaction.setConfirmations(jsonLong(value, BTCOBJ_TX_CONFIRMATIONS));
 		transaction.setTime(jsonLong(value, BTCOBJ_TX_TIME));
 		transaction.setTimeReceived(jsonLong(value, BTCOBJ_TX_TIME_RECEIVED));
@@ -607,22 +609,5 @@ public class BtcJsonRpcHttpClient {
 	public BigDecimal jsonDouble(JsonObject value, String key) {
 		JsonNumber number = value.getJsonNumber(key);
 		return (number == null)? BigDecimal.ZERO: number.bigDecimalValue();
-	}
-
-	public long floor(long val, long floor) {
-		return (val < floor) ? floor : val;
-	}
-
-	public BigDecimal floor(BigDecimal val, double floor) {
-		BigDecimal min = BigDecimal.valueOf(floor);
-		return (val == null) ? min : ((val.compareTo(min) < 0) ? min : val);
-	}
-
-	public String nil(String val) {
-		return (val == null) ? null : ((val.length() > 0) ? val : null);
-	}
-
-	public long bool(boolean val) {
-		return val ? 1 : 0;
 	}
 }
