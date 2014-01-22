@@ -13,7 +13,7 @@
 	</parent>
 	<name>btc4j-daemon</name>
 	<url>http://btc4j.github.io/btc4j-daemon</url>
-	<description>Bitcoin Java Daemon</description>
+	<description>Bitcoin Java Daemon Wrapper</description>
 	<inceptionYear>2013</inceptionYear>
 	<organization>
 		<name>btc4j</name>

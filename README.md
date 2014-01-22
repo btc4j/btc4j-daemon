@@ -1,5 +1,7 @@
-Bitcoin Java Daemon (btc4j-daemon)
-==================================
+Bitcoin Java Daemon Wrapper
+===========================
+btc4j-daemon
+------------
 Type-safe, open source Java - bitcoind wrapper.
 
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
