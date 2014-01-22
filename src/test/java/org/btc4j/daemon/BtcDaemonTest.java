@@ -607,14 +607,14 @@ public class BtcDaemonTest {
 			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 		}
-		move = BITCOIND_WITH_LISTENER.move(BITCOIND_ACCOUNT, "", BigDecimal.ONE);
+		move = BITCOIND_WITH_LISTENER.move(BITCOIND_ACCOUNT, "", 1);
 		assertTrue(move);
 	}
 
 	@Ignore("moves bitcoins")
 	@Test
 	public void sendFrom() throws BtcException {
-		String transactionId = BITCOIND_WITH_LISTENER.sendFrom(BITCOIND_ACCOUNT_DEFAULT, BITCOIND_ADDRESS_5, BigDecimal.valueOf(0.002));
+		String transactionId = BITCOIND_WITH_LISTENER.sendFrom(BITCOIND_ACCOUNT_DEFAULT, BITCOIND_ADDRESS_5, 0.002);
 		assertNotNull(transactionId);
 		try {
 			Thread.sleep(10000);
@@ -630,10 +630,27 @@ public class BtcDaemonTest {
 		}
 	}
 
-	@Ignore("wip")
+	@Ignore("moves bitcoins")
 	@Test
 	public void sendMany() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendMany("", new HashMap<String, BigDecimal>(), 0, "", "");
+		Map<String, BigDecimal> amounts = new HashMap<String, BigDecimal>();
+		amounts.put("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", BigDecimal.valueOf(0.0003));
+		amounts.put("mvDicKjyxUxJFt1icwbZjsJ7HnkAgVgbHj", BigDecimal.valueOf(0.0004));
+		amounts.put("mwHn9TtVaPYY4MwwBQQcm6gPP7hkNyNm7x", BigDecimal.valueOf(0.0005));
+		String transactionId = BITCOIND_WITH_LISTENER.sendMany(BITCOIND_ACCOUNT_DEFAULT, amounts);
+		assertNotNull(transactionId);
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+		}
+		BtcTransaction transaction = BITCOIND_WITHOUT_LISTENER.getTransaction(transactionId);
+		assertNotNull(transaction);
+		assertEquals(transactionId, transaction.getTransaction());
+		for (BtcTransactionDetail detail: transaction.getDetails()) {
+			if (BtcTransaction.Category.RECEIVE.equals(detail.getCategory())) {
+				assertEquals(BITCOIND_ACCOUNT, detail.getAccount());
+			}
+		}
 	}
 
 	@Test(expected = BtcException.class)
@@ -641,10 +658,18 @@ public class BtcDaemonTest {
 		BITCOIND_WITH_LISTENER.sendRawTransaction("");
 	}
 
-	@Ignore("wip")
+	@Ignore("moves bitcoins")
 	@Test
 	public void sendToAddress() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendToAddress("", BigDecimal.ZERO, "", "");
+		String transactionId = BITCOIND_WITH_LISTENER.sendToAddress("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", 0.06);
+		assertNotNull(transactionId);
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+		}
+		BtcTransaction transaction = BITCOIND_WITHOUT_LISTENER.getTransaction(transactionId);
+		assertNotNull(transaction);
+		assertEquals(transactionId, transaction.getTransaction());
 	}
 
 	@Ignore("generates new address")

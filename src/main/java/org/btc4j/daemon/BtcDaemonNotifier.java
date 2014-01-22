@@ -34,7 +34,7 @@ public class BtcDaemonNotifier {
 	private static final String BTC4J_DAEMON_HOST = "127.0.0.1";
 	private static final int BTC4J_DAEMON_ALERT_PORT = 18336;
 	private static final String BTC4J_DAEMON_NOTIFIER_USAGE = "usage: java BitcoinDaemonNotifier <host> <port> <message>";
-	private static final String BTC4J_DAEMON_NOTIFIER_ERROR = "bitcoin daemon notifier error: ";
+	private static final String BTC4J_DAEMON_NOTIFIER_ERROR = "bitcoin daemon notifier error";
 
 	public static void main(String[] args) {
 		String host = BTC4J_DAEMON_HOST;
@@ -61,7 +61,7 @@ public class BtcDaemonNotifier {
 			LOGGER.info("sent notification: " + message + " to " + host + ":"
 					+ port);
 		} catch (Throwable t) {
-			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + t);
+			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + " " + host + ":" + port + " " + message + ": "+ t);
 			status = 1;
 		}
 		return status;

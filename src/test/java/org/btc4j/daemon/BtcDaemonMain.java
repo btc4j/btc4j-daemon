@@ -7,8 +7,17 @@ public class BtcDaemonMain {
 	public static void main(String[] args) {
 		try {
 			BtcDaemon daemon = new BtcDaemon(new URL("https://127.0.0.1:18332"), "user", "password");
-			// daemon.help("sendfrom");
-			daemon.stop();
+			daemon.help("sendtoaddress");
+			daemon.walletLock();
+			//daemon.walletPassphrase("password");
+			//daemon.walletPassphrase("password");
+			//System.out.println("getbalance: " + daemon.getBalance(""));
+			//System.out.println("sendtoaddress: " + daemon.sendToAddress("mvDicKjyxUxJFt1icwbZjsJ7HnkAgVgbHj", 0.06));
+			//System.out.println("getbalance: " + daemon.getBalance(""));
+			//System.out.println("getbalance user: " + daemon.getBalance("user"));
+			System.out.println("getrawtransaction: " + daemon.getRawTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788", true));
+			System.out.println("gettransaction: " + daemon.getTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788"));
+			//daemon.stop();
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}

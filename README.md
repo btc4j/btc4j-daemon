@@ -5,12 +5,13 @@ Type-safe, open source Java - bitcoind wrapper.
 Development build status: [![Build Status](https://travis-ci.org/btc4j/btc4j-daemon.png?branch=master)](https://travis-ci.org/btc4j/btc4j-daemon)
 
 btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
-* Apache HTTP Components (org.apache.http)
-* Java API for Json Processing and reference implementation (javax.json and org.glassfish.json)
+* [Bitcoin Java Core Components (org.btc4j.core)] (http://btc4j.github.io/btc4j-core)
+* [Apache HTTP Components (org.apache.http)] (http://hc.apache.org)
+* [Java API for Json Processing (javax.json)] (http://www.oracle.com/technetwork/articles/java/json-1973242.html)
 
 bitcoind API development status (out of a total of 61 commands):
-* Completed and verified: 52
-* Work in progress: 1
+* Completed and verified: 51
+* Work in progress: 2
 * Not yet implemented: 8
 
 Notification subsystem development status:
@@ -31,19 +32,25 @@ Maven pom.xml dependency:
 	<version>0.0.3-SNAPSHOT</version>
 </dependency>
 ```
+or, download artifacts directly from https://github.com/btc4j/btc4j-repo/tree/master/btc4j-daemon.
 
 Connect to a bitcoind process:
 ```java
+// bitcoind URL, rpc user/account, rpc password
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
-						"user", "password", 30000);
+						"user", "password");
 BtcInfo info = daemon.getInfo();
 String address = daemon.getAccountAddress("user");
-String stop = daemon.stop(); // will stop bitcoind 
+daemon.walletPassphrase("password");
+daemon.sendToAddress("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", 2.5); 
+daemon.walletLock();
+String stop = daemon.stop(); // will stop bitcoind, not required
 ```
 or, with notifications enabled:
 ```java
+// bitcoind URL, rpc user/account, rpc password, notification ports 
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
-						"user", "password", 30000, 18334, 18335, 18336);
+						"user", "password", 18334, 18335, 18336);
 daemon.getWalletListener().addObserver(new Observer() {
 	@Override
 	public void update(Observable o, Object obj) {
@@ -54,6 +61,7 @@ daemon.getWalletListener().addObserver(new Observer() {
 	}
 });
 BigDecimal amount = daemon.getReceivedByAccount("user");
+Map<String, BtcAccount> accounts = daemon.listAccounts();
 daemon.backupWallet(new File("wallet.dat"));
 daemon.stopListening(); // stops the listeners if notifications enabled
 String stop = daemon.stop(); // will stop bitcoind
