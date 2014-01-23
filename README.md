@@ -12,7 +12,7 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 bitcoind API development status (out of a total of 61 commands):
 * Completed and verified: 51
 * Work in progress: 2
-* Not yet implemented: 8
+* Not yet implemented: 8 (raw transaction and mining commands)
 
 Notification subsystem development status:
 * Notifier: complete
@@ -37,11 +37,11 @@ or, download artifacts directly from https://github.com/btc4j/btc4j-repo/tree/ma
 Connect to a bitcoind process:
 ```java
 // bitcoind URL, rpc user/account, rpc password
-BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
-						"user", "password");
+BtcDaemon daemon = new BtcDaemon(new URL("https://127.0.0.1:18332"),
+					"rpcuser", "GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj");
 BtcInfo info = daemon.getInfo();
-String address = daemon.getAccountAddress("user");
-daemon.walletPassphrase("password");
+String address = daemon.getAccountAddress("rpcuser");
+daemon.walletPassphrase("GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj");
 daemon.sendToAddress("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", 2.5); 
 daemon.walletLock();
 String stop = daemon.stop(); // will stop bitcoind, not required
@@ -50,7 +50,7 @@ or, with notifications enabled:
 ```java
 // bitcoind URL, rpc user/account, rpc password, notification ports 
 BtcDaemon daemon = new BtcDaemon(new URL("http://127.0.0.1:18332"),
-						"user", "password", 18334, 18335, 18336);
+					"user", "password", 18334, 18335, 18336);
 daemon.getWalletListener().addObserver(new Observer() {
 	@Override
 	public void update(Observable o, Object obj) {
