@@ -29,7 +29,7 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 public class BtcDaemonNotifier {
-	private final static Logger LOGGER = Logger
+	private final static Logger LOG = Logger
 			.getLogger(BtcDaemonNotifier.class.getName());
 	private static final String BTC4J_DAEMON_HOST = "127.0.0.1";
 	private static final int BTC4J_DAEMON_ALERT_PORT = 18336;
@@ -45,7 +45,7 @@ public class BtcDaemonNotifier {
 			port = Integer.parseInt(args[1]);
 			message = args[2].trim();
 		} catch (Throwable t) {
-			LOGGER.warning(String.valueOf(t));
+			LOG.warning(String.valueOf(t));
 			System.err.println(BTC4J_DAEMON_NOTIFIER_USAGE);
 			System.exit(1);
 		}
@@ -58,10 +58,10 @@ public class BtcDaemonNotifier {
 				PrintWriter out = new PrintWriter(socket.getOutputStream(),
 						true);) {
 			out.println(message);
-			LOGGER.info("sent notification: " + message + " to " + host + ":"
+			LOG.info("sent notification: " + message + " to " + host + ":"
 					+ port);
 		} catch (Throwable t) {
-			LOGGER.warning(BTC4J_DAEMON_NOTIFIER_ERROR + " " + host + ":" + port + " " + message + ": "+ t);
+			LOG.warning(BTC4J_DAEMON_NOTIFIER_ERROR + " " + host + ":" + port + " " + message + ": "+ t);
 			status = 1;
 		}
 		return status;

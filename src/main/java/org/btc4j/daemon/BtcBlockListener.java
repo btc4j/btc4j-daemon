@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.btc4j.core.BtcBlock;
 
 public class BtcBlockListener extends BtcNotificationSource {
-	private static final Logger LOGGER = Logger
+	private static final Logger LOG = Logger
 			.getLogger(BtcBlockListener.class.getName());
 	private BtcDaemon daemon;
 
@@ -22,7 +22,7 @@ public class BtcBlockListener extends BtcNotificationSource {
 			try {
 				block = daemon.getBlock(hash);
 			} catch (Throwable t) {
-				LOGGER.warning(String.valueOf(t));
+				LOG.warning(String.valueOf(t));
 				block = new BtcBlock();
 				block.setHash(hash);
 			}

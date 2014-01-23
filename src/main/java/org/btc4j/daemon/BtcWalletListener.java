@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.btc4j.core.BtcTransaction;
 
 public class BtcWalletListener extends BtcNotificationSource {
-	private static final Logger LOGGER = Logger
+	private static final Logger LOG = Logger
 			.getLogger(BtcWalletListener.class.getName());
 	private BtcDaemon daemon;
 
@@ -22,7 +22,7 @@ public class BtcWalletListener extends BtcNotificationSource {
 			try {
 				transaction = daemon.getTransaction(txId);
 			} catch (Throwable t) {
-				LOGGER.warning(String.valueOf(t));
+				LOG.warning(String.valueOf(t));
 				transaction = new BtcTransaction();
 				transaction.setTransaction(txId);
 			}
