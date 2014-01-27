@@ -207,13 +207,8 @@ public class BtcJsonRpcHttpClient {
 	private RequestConfig requestConfig; 
 	private URL url;
 
-	public BtcJsonRpcHttpClient(URL url, String account, String password,
-			int timeout) {
+	public BtcJsonRpcHttpClient(URL url, int timeout) {
 		this.url = url;
-		credentialsProvider = new BasicCredentialsProvider();
-		credentialsProvider.setCredentials(
-                new AuthScope(url.getHost(), url.getPort(), JSONRPC_REALM),
-                new UsernamePasswordCredentials(account, password));
 		requestConfig = RequestConfig.custom()
 				.setAuthenticationEnabled(true)
 				.setConnectionRequestTimeout(timeout)
@@ -223,8 +218,25 @@ public class BtcJsonRpcHttpClient {
 				.build();
 	}
 	
+	public BtcJsonRpcHttpClient(URL url) {
+		this(url, BTC4J_DAEMON_TIMEOUT);
+	}
+	
+	public BtcJsonRpcHttpClient(URL url, String account, String password,
+			int timeout) {
+		this(url, timeout);
+		setCredentials(account, password);
+	}
+	
 	public BtcJsonRpcHttpClient(URL url, String account, String password) {
 		this(url, account, password, BTC4J_DAEMON_TIMEOUT);
+	}
+	
+	public void setCredentials(String account, String password) {
+		credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(
+                new AuthScope(url.getHost(), url.getPort(), JSONRPC_REALM),
+                new UsernamePasswordCredentials(account, password));
 	}
 
 	public JsonValue invoke(String method) throws BtcException {

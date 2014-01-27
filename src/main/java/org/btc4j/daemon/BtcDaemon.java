@@ -135,10 +135,39 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public BtcDaemon(URL url, String account, String password) {
 		super(url, account, password);
 	}
+	
+	public BtcDaemon(URL url, int timeout) {
+		super(url, timeout);
+	}
+	
+	public BtcDaemon(URL url) {
+		super(url);
+	}
 
 	public BtcDaemon(URL url, String account, String password, int timeout,
 			int alertPort, int blockPort, int walletPort) {
-		this(url, account, password, timeout);
+		super(url, account, password, timeout);
+		startListening(alertPort, blockPort, walletPort);
+	}
+	
+	public BtcDaemon(URL url, String account, String password,
+			int alertPort, int blockPort, int walletPort) {
+		super(url, account, password);
+		startListening(alertPort, blockPort, walletPort);
+	}
+	
+	public BtcDaemon(URL url, int timeout,
+			int alertPort, int blockPort, int walletPort) {
+		super(url, timeout);
+		startListening(alertPort, blockPort, walletPort);
+	}
+	
+	public BtcDaemon(URL url, int alertPort, int blockPort, int walletPort) {
+		super(url);
+		startListening(alertPort, blockPort, walletPort);
+	}
+	
+	private void startListening(int alertPort, int blockPort, int walletPort) {
 		alertListener = new BtcAlertListener(alertPort);
 		alertThread = new Thread(alertListener, "alertListener");
 		alertThread.start();
