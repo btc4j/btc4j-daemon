@@ -1,4 +1,4 @@
 language: java
 jdk:
   - oraclejdk7
-script: mvn install -DskipTests=true -Dgpg.skip=true
+script: mvn clean install -DskipTests=true -Dgpg.skip=true

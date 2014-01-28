@@ -10,9 +10,9 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * [Java API for Json Processing (javax.json)] (http://www.oracle.com/technetwork/articles/java/json-1973242.html)
 
 bitcoind API development status (out of a total of 61 commands):
-* Completed and verified: 51
+* Completed and verified: 53
 * Work in progress: 2
-* Not yet implemented: 8 (raw transaction and mining commands)
+* Not yet implemented: 6 (raw transaction and mining commands)
 
 Notification subsystem development status:
 * Notifier: complete

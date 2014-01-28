@@ -41,6 +41,13 @@ public class BtcDaemonMain {
 			//System.out.println("getbalance user: " + daemon.getBalance("user"));
 			//System.out.println("getrawtransaction: " + daemon.getRawTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788", true));
 			//System.out.println("gettransaction: " + daemon.getTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788"));
+			//System.out.println("getwork: " + daemon.getWork());
+			//System.out.println("getwork: " + daemon.getWork("0000000266354a01810b6fa52baa1245ebcee84b0f2a8d38425f55f7000abb34000000000b083510d119e47d1b2f2d603c13a9d41ab287a49b722fe70b963f31e6b5b21e52e799db1b112c8600000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000"));
+			//List<BtcBlockTemplate.Capability> capabilities = new ArrayList<BtcBlockTemplate.Capability>();
+			//capabilities.add(BtcBlockTemplate.Capability.WORKID);
+			//capabilities.add(BtcBlockTemplate.Capability.COINBASEVALUE);
+			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(capabilities, BtcBlockTemplate.Mode.TEMPLATE));
+			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(null, BtcBlockTemplate.Mode.TEMPLATE));
 			daemon.stop();
 		} catch (Throwable t) {
 			t.printStackTrace();

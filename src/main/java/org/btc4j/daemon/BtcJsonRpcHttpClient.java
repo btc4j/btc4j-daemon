@@ -29,7 +29,9 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -63,20 +65,24 @@ import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
+import org.btc4j.core.BtcBlockTemplate;
+import org.btc4j.core.BtcCoinBase;
 import org.btc4j.core.BtcException;
+import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
 import org.btc4j.core.BtcMultiSignatureAddress;
 import org.btc4j.core.BtcNode;
 import org.btc4j.core.BtcPeer;
-import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcRawTransaction;
 import org.btc4j.core.BtcScript;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
-import org.btc4j.core.BtcTransactionOutputSet;
 import org.btc4j.core.BtcTransactionInput;
 import org.btc4j.core.BtcTransactionOutput;
+import org.btc4j.core.BtcTransactionOutputSet;
+import org.btc4j.core.BtcTransactionTemplate;
+import org.btc4j.core.BtcWork;
 
 public class BtcJsonRpcHttpClient {
 	private static final String BTC4J_DAEMON_DATA_INVALID_ID = "response id does not match request id";
@@ -113,6 +119,16 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTCOBJ_BLOCK_TIME = "time";
 	private static final String BTCOBJ_BLOCK_TRANSACTIONS = "tx";
 	private static final String BTCOBJ_BLOCK_VERSION = "version";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_TRANSACTIONS = "transactions";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_TARGET = "target";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_MIN_TIME = "mintime";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_MUTABLE = "mutable";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_NONCE_RANGE = "noncerange";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_SIGNATURE_OPERATIONS = "sigoplimit";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_SIZE = "sizelimit";
+	private static final String BTCOBJ_BLOCK_TEMPLATE_TIME = "curtime";
+	private static final String BTCOBJ_COIN_AUXILIARY = "coinbaseaux";
+	private static final String BTCOBJ_COIN_VALUE = "coinbasevalue";
 	private static final String BTCOBJ_INFO_BALANCE = "balance";
 	private static final String BTCOBJ_INFO_BLOCKS = "blocks";
 	private static final String BTCOBJ_INFO_CONNECTIONS = "connections";
@@ -191,6 +207,10 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTCOBJ_TX_OUTPUT_SET_OUTPUT_TRANSACTIONS = "txouts";
 	private static final String BTCOBJ_TX_OUTPUT_SET_TOTAL_AMOUNT = "total_amount";
 	private static final String BTCOBJ_TX_OUTPUT_SET_TRANSACTIONS = "transactions";
+	private static final String BTCOBJ_WORK_MIDSTATE = "midstate";
+	private static final String BTCOBJ_WORK_DATA = "data";
+	private static final String BTCOBJ_WORK_HASH = "hash1";
+	private static final String BTCOBJ_WORK_TARGET = "target";
 	private static final String JSONRPC_CODE = "code";
 	private static final String JSONRPC_DATA = "data";
 	private static final String JSONRPC_ERROR = "error";
@@ -394,6 +414,58 @@ public class BtcJsonRpcHttpClient {
 		return block;
 	}
 
+	public BtcBlockTemplate jsonBlockTemplate(JsonObject value) throws BtcException {
+		BtcBlockTemplate block = new BtcBlockTemplate();
+		block.setVersion(jsonLong(value, BTCOBJ_BLOCK_VERSION));
+		block.setPreviousBlockHash(value.getString(
+				BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
+		List<BtcTransactionTemplate> transactions = new ArrayList<BtcTransactionTemplate>();
+		JsonArray txs = value.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_TRANSACTIONS);
+		if (txs != null) {
+			for (JsonObject tx : txs.getValuesAs(JsonObject.class)) {
+				transactions.add(jsonTransactionTemplate(tx));
+			}
+		}
+		block.setTransactions(transactions);
+		block.setCoinBase(jsonCoinBase(value));
+		block.setTarget(value.getString(
+				BTCOBJ_BLOCK_TEMPLATE_TARGET, ""));
+		block.setMinimumTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_MIN_TIME));
+		List<String> mutable = new ArrayList<String>();
+		JsonArray mutableIds = value
+				.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_MUTABLE);
+		if (mutableIds != null) {
+			for (JsonString mutableId : mutableIds
+					.getValuesAs(JsonString.class)) {
+				mutable.add(mutableId.getString());
+			}
+		}
+		block.setMutable(mutable);
+		block.setNonceRange(value.getString(
+				BTCOBJ_BLOCK_TEMPLATE_NONCE_RANGE, ""));
+		block.setSignatureOperations(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIGNATURE_OPERATIONS));
+		block.setSize(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIZE));
+		block.setTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_TIME));
+		block.setBits(value.getString(
+				BTCOBJ_BLOCK_BITS, ""));
+		block.setHeight(jsonLong(value, BTCOBJ_BLOCK_HEIGHT));
+		return block;
+	}
+
+	public BtcCoinBase jsonCoinBase(JsonObject value) throws BtcException {
+		BtcCoinBase coin = new BtcCoinBase();
+		Map<String, String> auxiliary = new HashMap<String, String>();
+		JsonObject aux = value.getJsonObject(BTCOBJ_COIN_AUXILIARY);
+		if (aux != null) {
+			for (String key : aux.keySet()) {
+				auxiliary.put(key, aux.getString(key, ""));
+			}
+		}
+		coin.setAuxiliary(auxiliary);
+		coin.setValue(jsonDouble(value, BTCOBJ_COIN_VALUE));
+		return coin;
+	}
+	
 	public BtcInfo jsonInfo(JsonObject value) throws BtcException {
 		BtcInfo info = new BtcInfo();
 		info.setVersion(jsonLong(value, BTCOBJ_INFO_VERSION));
@@ -606,6 +678,25 @@ public class BtcJsonRpcHttpClient {
 				BTCOBJ_TX_OUTPUT_SET_HASH_SERIALIZED, ""));
 		output.setTotalAmount(jsonDouble(value, BTCOBJ_TX_OUTPUT_SET_TOTAL_AMOUNT));
 		return output;
+	}
+	
+	public BtcTransactionTemplate jsonTransactionTemplate(JsonObject value) {
+		BtcTransactionTemplate template = new BtcTransactionTemplate();
+		return template;
+	}
+	
+	public BtcWork jsonWork(JsonObject value)
+			throws BtcException {
+		BtcWork work = new BtcWork();
+		work.setMidState(value
+				.getString(BTCOBJ_WORK_MIDSTATE, ""));
+		work.setData(value
+				.getString(BTCOBJ_WORK_DATA, ""));
+		work.setHash(value
+				.getString(BTCOBJ_WORK_HASH, ""));
+		work.setTarget(value
+				.getString(BTCOBJ_WORK_TARGET, ""));
+		return work;
 	}
 	
 	public long jsonLong(JsonObject value, String key) {

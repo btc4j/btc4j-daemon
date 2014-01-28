@@ -41,6 +41,7 @@ import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
+import org.btc4j.core.BtcBlockTemplate;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
@@ -52,6 +53,7 @@ import org.btc4j.core.BtcRawTransaction;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
+import org.btc4j.core.BtcWork;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -342,9 +344,10 @@ public class BtcDaemonTest {
 		assertTrue(hash.length() >= 0);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void getBlockTemplate() throws BtcException {
-		BITCOIND_WITH_LISTENER.getBlockTemplate("");
+		BtcBlockTemplate block = BITCOIND_WITH_LISTENER.getBlockTemplate(null);
+		assertNotNull(block);
 	}
 
 	@Test
@@ -478,9 +481,18 @@ public class BtcDaemonTest {
 		assertTrue(txOutputSet.getHeight() >= 0);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void getWork() throws BtcException {
-		BITCOIND_WITH_LISTENER.getWork("");
+		BtcWork work = BITCOIND_WITH_LISTENER.getWork();
+		assertNotNull(work);
+		assertNotNull(work.getMidState());
+		assertNotNull(work.getHash());
+		assertNotNull(work.getTarget());
+		String data = work.getData();
+		assertNotNull(data);
+		work = BITCOIND_WITHOUT_LISTENER.getWork(data);
+		assertNotNull(work);
+		assertFalse(work.isSuccess());
 	}
 
 	@Test
