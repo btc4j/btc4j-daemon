@@ -209,6 +209,7 @@ public class BtcDaemonTest {
 		assertTrue(wallet.exists());
 	}
 
+	@Ignore("generates new address")
 	@Test
 	public void createMultiSignatureAddress() throws BtcException {
 		List<String> keys = new ArrayList<String>();

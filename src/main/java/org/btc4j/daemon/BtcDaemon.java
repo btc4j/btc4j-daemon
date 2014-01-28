@@ -419,6 +419,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 
 	@Override
 	public long getConnectionCount() throws BtcException {
+		System.out.println("BtcDaemon.getConnectionCount");
 		JsonNumber results = (JsonNumber) invoke(BTCAPI_GET_CONNECTION_COUNT);
 		return results.longValue();
 	}
