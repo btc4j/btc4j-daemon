@@ -65,6 +65,7 @@ import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
+import org.btc4j.core.BtcBlockSubmission;
 import org.btc4j.core.BtcBlockTemplate;
 import org.btc4j.core.BtcCoinBase;
 import org.btc4j.core.BtcException;
@@ -343,322 +344,365 @@ public class BtcJsonRpcHttpClient {
 		}
 	}
 
-	public BtcAccount jsonAccount(JsonObject value) {
+	public BtcAccount jsonAccount(JsonObject value) throws BtcException {
 		BtcAccount account = new BtcAccount();
-		account.setAccount(value.getString(BTCOBJ_ACCOUNT_ACCOUNT, ""));
-		account.setAmount(jsonDouble(value, BTCOBJ_ACCOUNT_AMOUNT));
-		account.setConfirmations(jsonLong(value, BTCOBJ_ACCOUNT_CONFIRMATIONS));
+		if (value != null) {
+			account.setAccount(value.getString(BTCOBJ_ACCOUNT_ACCOUNT, ""));
+			account.setAmount(jsonDouble(value, BTCOBJ_ACCOUNT_AMOUNT));
+			account.setConfirmations(jsonLong(value, BTCOBJ_ACCOUNT_CONFIRMATIONS));
+		}
 		return account;
 	}
 
-	public BtcAddedNode jsonAddedNode(JsonObject value) {
+	public BtcAddedNode jsonAddedNode(JsonObject value) throws BtcException {
 		BtcAddedNode addedNode = new BtcAddedNode();
-		addedNode.setAddedNode(value.getString(BTCOBJ_NODE_ADDED_NODE, ""));
-		addedNode.setConnected(value.getBoolean(BTCOBJ_NODE_CONNECTED, false));
-		List<BtcNode> nodes = new ArrayList<BtcNode>();
-		JsonArray addresses = value.getJsonArray(BTCOBJ_NODE_ADDRESSES);
-		if (addresses != null) {
-			for (JsonObject address : addresses.getValuesAs(JsonObject.class)) {
-				nodes.add(jsonNode(address));
+		if (value != null) {
+			addedNode.setAddedNode(value.getString(BTCOBJ_NODE_ADDED_NODE, ""));
+			addedNode.setConnected(value.getBoolean(BTCOBJ_NODE_CONNECTED, false));
+			List<BtcNode> nodes = new ArrayList<BtcNode>();
+			JsonArray addresses = value.getJsonArray(BTCOBJ_NODE_ADDRESSES);
+			if (addresses != null) {
+				for (JsonObject address : addresses.getValuesAs(JsonObject.class)) {
+					nodes.add(jsonNode(address));
+				}
 			}
+			addedNode.setAddresses(nodes);
 		}
-		addedNode.setAddresses(nodes);
 		return addedNode;
 	}
 
-	public BtcAddress jsonAddress(JsonObject value) {
+	public BtcAddress jsonAddress(JsonObject value) throws BtcException {
 		BtcAddress address = new BtcAddress();
-		address.setValid(value.getBoolean(BTCOBJ_ADDRESS_VALID, false));
-		address.setAddress(value.getString(BTCOBJ_ADDRESS_ADDRESS, ""));
-		address.setMine(value.getBoolean(BTCOBJ_ADDRESS_MINE, false));
-		address.setScript(value.getBoolean(BTCOBJ_ADDRESS_SCRIPT, false));
-		address.setPublicKey(value.getString(BTCOBJ_ADDRESS_PUBLIC_KEY, ""));
-		address.setCompressed(value
-				.getBoolean(BTCOBJ_ADDRESS_COMPRESSED, false));
-		BtcAccount account = new BtcAccount();
-		account.setAccount(value.getString(BTCOBJ_ADDRESS_ACCOUNT, ""));
-		address.setAccount(account);
-		address.setAmount(jsonDouble(value, BTCOBJ_ADDRESS_AMOUNT));
-		address.setConfirmations(jsonLong(value, BTCOBJ_ADDRESS_CONFIRMATIONS));
+		if (value != null) {
+			address.setValid(value.getBoolean(BTCOBJ_ADDRESS_VALID, false));
+			address.setAddress(value.getString(BTCOBJ_ADDRESS_ADDRESS, ""));
+			address.setMine(value.getBoolean(BTCOBJ_ADDRESS_MINE, false));
+			address.setScript(value.getBoolean(BTCOBJ_ADDRESS_SCRIPT, false));
+			address.setPublicKey(value.getString(BTCOBJ_ADDRESS_PUBLIC_KEY, ""));
+			address.setCompressed(value
+					.getBoolean(BTCOBJ_ADDRESS_COMPRESSED, false));
+			BtcAccount account = new BtcAccount();
+			account.setAccount(value.getString(BTCOBJ_ADDRESS_ACCOUNT, ""));
+			address.setAccount(account);
+			address.setAmount(jsonDouble(value, BTCOBJ_ADDRESS_AMOUNT));
+			address.setConfirmations(jsonLong(value, BTCOBJ_ADDRESS_CONFIRMATIONS));
+		}
 		return address;
 	}
 
 	public BtcBlock jsonBlock(JsonObject value) throws BtcException {
 		BtcBlock block = new BtcBlock();
-		block.setHash(value.getString(BTCOBJ_BLOCK_HASH, ""));
-		block.setConfirmations(jsonLong(value, BTCOBJ_BLOCK_CONFIRMATIONS));
-		block.setSize(jsonLong(value, BTCOBJ_BLOCK_SIZE));
-		block.setHeight(jsonLong(value, BTCOBJ_BLOCK_HEIGHT));
-		block.setVersion(jsonLong(value, BTCOBJ_BLOCK_VERSION));
-		block.setMerkleRoot(value.getString(BTCOBJ_BLOCK_MERKLE_ROOT, ""));
-		List<BtcTransaction> transactions = new ArrayList<BtcTransaction>();
-		JsonArray transactionIds = value
-				.getJsonArray(BTCOBJ_BLOCK_TRANSACTIONS);
-		if (transactionIds != null) {
-			for (JsonString transactionId : transactionIds
-					.getValuesAs(JsonString.class)) {
-				BtcTransaction transaction = new BtcTransaction();
-				transaction.setTransaction(transactionId.getString());
-				transactions.add(transaction);
+		if (value != null) {
+			block.setHash(value.getString(BTCOBJ_BLOCK_HASH, ""));
+			block.setConfirmations(jsonLong(value, BTCOBJ_BLOCK_CONFIRMATIONS));
+			block.setSize(jsonLong(value, BTCOBJ_BLOCK_SIZE));
+			block.setHeight(jsonLong(value, BTCOBJ_BLOCK_HEIGHT));
+			block.setVersion(jsonLong(value, BTCOBJ_BLOCK_VERSION));
+			block.setMerkleRoot(value.getString(BTCOBJ_BLOCK_MERKLE_ROOT, ""));
+			List<BtcTransaction> transactions = new ArrayList<BtcTransaction>();
+			JsonArray transactionIds = value
+					.getJsonArray(BTCOBJ_BLOCK_TRANSACTIONS);
+			if (transactionIds != null) {
+				for (JsonString transactionId : transactionIds
+						.getValuesAs(JsonString.class)) {
+					BtcTransaction transaction = new BtcTransaction();
+					transaction.setTransaction(transactionId.getString());
+					transactions.add(transaction);
+				}
 			}
+			block.setTransactions(transactions);
+			block.setTime(jsonLong(value,BTCOBJ_BLOCK_TIME));
+			block.setNonce(jsonLong(value, BTCOBJ_BLOCK_NONCE));
+			block.setBits(value.getString(BTCOBJ_BLOCK_BITS, ""));
+			block.setDifficulty(jsonDouble(value, BTCOBJ_BLOCK_DIFFICULTY));
+			block.setPreviousBlockHash(value.getString(
+					BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
+			block.setNextBlockHash(value
+					.getString(BTCOBJ_BLOCK_NEXT_BLOCK_HASH, ""));
 		}
-		block.setTransactions(transactions);
-		block.setTime(jsonLong(value,BTCOBJ_BLOCK_TIME));
-		block.setNonce(jsonLong(value, BTCOBJ_BLOCK_NONCE));
-		block.setBits(value.getString(BTCOBJ_BLOCK_BITS, ""));
-		block.setDifficulty(jsonDouble(value, BTCOBJ_BLOCK_DIFFICULTY));
-		block.setPreviousBlockHash(value.getString(
-				BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
-		block.setNextBlockHash(value
-				.getString(BTCOBJ_BLOCK_NEXT_BLOCK_HASH, ""));
 		return block;
+	}
+	
+	public BtcBlockSubmission jsonBlockSubmission(JsonObject value) throws BtcException {
+		BtcBlockSubmission submission = new BtcBlockSubmission();
+		if (value != null) {
+		}
+		return submission;
 	}
 
 	public BtcBlockTemplate jsonBlockTemplate(JsonObject value) throws BtcException {
 		BtcBlockTemplate block = new BtcBlockTemplate();
-		block.setVersion(jsonLong(value, BTCOBJ_BLOCK_VERSION));
-		block.setPreviousBlockHash(value.getString(
-				BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
-		List<BtcTransactionTemplate> transactions = new ArrayList<BtcTransactionTemplate>();
-		JsonArray txs = value.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_TRANSACTIONS);
-		if (txs != null) {
-			for (JsonObject tx : txs.getValuesAs(JsonObject.class)) {
-				transactions.add(jsonTransactionTemplate(tx));
+		if (value != null) {
+			block.setVersion(jsonLong(value, BTCOBJ_BLOCK_VERSION));
+			block.setPreviousBlockHash(value.getString(
+					BTCOBJ_BLOCK_PREVIOUS_BLOCK_HASH, ""));
+			List<BtcTransactionTemplate> transactions = new ArrayList<BtcTransactionTemplate>();
+			JsonArray txs = value.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_TRANSACTIONS);
+			if (txs != null) {
+				for (JsonObject tx : txs.getValuesAs(JsonObject.class)) {
+					transactions.add(jsonTransactionTemplate(tx));
+				}
 			}
-		}
-		block.setTransactions(transactions);
-		block.setCoinBase(jsonCoinBase(value));
-		block.setTarget(value.getString(
-				BTCOBJ_BLOCK_TEMPLATE_TARGET, ""));
-		block.setMinimumTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_MIN_TIME));
-		List<String> mutable = new ArrayList<String>();
-		JsonArray mutableIds = value
-				.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_MUTABLE);
-		if (mutableIds != null) {
-			for (JsonString mutableId : mutableIds
-					.getValuesAs(JsonString.class)) {
-				mutable.add(mutableId.getString());
+			block.setTransactions(transactions);
+			block.setCoinBase(jsonCoinBase(value));
+			block.setTarget(value.getString(
+					BTCOBJ_BLOCK_TEMPLATE_TARGET, ""));
+			block.setMinimumTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_MIN_TIME));
+			List<String> mutable = new ArrayList<String>();
+			JsonArray mutableIds = value
+					.getJsonArray(BTCOBJ_BLOCK_TEMPLATE_MUTABLE);
+			if (mutableIds != null) {
+				for (JsonString mutableId : mutableIds
+						.getValuesAs(JsonString.class)) {
+					mutable.add(mutableId.getString());
+				}
 			}
+			block.setMutable(mutable);
+			block.setNonceRange(value.getString(
+					BTCOBJ_BLOCK_TEMPLATE_NONCE_RANGE, ""));
+			block.setSignatureOperations(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIGNATURE_OPERATIONS));
+			block.setSize(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIZE));
+			block.setTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_TIME));
+			block.setBits(value.getString(
+					BTCOBJ_BLOCK_BITS, ""));
+			block.setHeight(jsonLong(value, BTCOBJ_BLOCK_HEIGHT));
 		}
-		block.setMutable(mutable);
-		block.setNonceRange(value.getString(
-				BTCOBJ_BLOCK_TEMPLATE_NONCE_RANGE, ""));
-		block.setSignatureOperations(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIGNATURE_OPERATIONS));
-		block.setSize(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_SIZE));
-		block.setTime(jsonLong(value, BTCOBJ_BLOCK_TEMPLATE_TIME));
-		block.setBits(value.getString(
-				BTCOBJ_BLOCK_BITS, ""));
-		block.setHeight(jsonLong(value, BTCOBJ_BLOCK_HEIGHT));
 		return block;
 	}
 
 	public BtcCoinBase jsonCoinBase(JsonObject value) throws BtcException {
 		BtcCoinBase coin = new BtcCoinBase();
-		Map<String, String> auxiliary = new HashMap<String, String>();
-		JsonObject aux = value.getJsonObject(BTCOBJ_COIN_AUXILIARY);
-		if (aux != null) {
-			for (String key : aux.keySet()) {
-				auxiliary.put(key, aux.getString(key, ""));
+		if (value != null) {
+			Map<String, String> auxiliary = new HashMap<String, String>();
+			JsonObject aux = value.getJsonObject(BTCOBJ_COIN_AUXILIARY);
+			if (aux != null) {
+				for (String key : aux.keySet()) {
+					auxiliary.put(key, aux.getString(key, ""));
+				}
 			}
+			coin.setAuxiliary(auxiliary);
+			coin.setValue(jsonDouble(value, BTCOBJ_COIN_VALUE));
 		}
-		coin.setAuxiliary(auxiliary);
-		coin.setValue(jsonDouble(value, BTCOBJ_COIN_VALUE));
 		return coin;
 	}
 	
 	public BtcInfo jsonInfo(JsonObject value) throws BtcException {
 		BtcInfo info = new BtcInfo();
-		info.setVersion(jsonLong(value, BTCOBJ_INFO_VERSION));
-		info.setProtocolVersion(jsonLong(value, BTCOBJ_INFO_PROTOCOL_VERSION));
-		info.setWalletVersion(jsonLong(value, BTCOBJ_INFO_WALLET_VERSION));
-		info.setBalance(jsonDouble(value, BTCOBJ_INFO_BALANCE));
-		info.setBlocks(jsonLong(value, BTCOBJ_INFO_BLOCKS));
-		info.setTimeOffset(jsonLong(value, BTCOBJ_INFO_TIME_OFFSET));
-		info.setConnections(jsonLong(value, BTCOBJ_INFO_CONNECTIONS));
-		info.setProxy(value.getString(BTCOBJ_INFO_PROXY, ""));
-		info.setDifficulty(jsonDouble(value, BTCOBJ_INFO_DIFFICULTY));
-		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
-		info.setKeyPoolOldest(jsonLong(value, BTCOBJ_INFO_KEYPOOL_OLDEST));
-		info.setKeyPoolSize(jsonLong(value, BTCOBJ_INFO_KEYPOOL_SIZE));
-		info.setTransactionFee(jsonDouble(value, BTCOBJ_INFO_TRANSACTION_FEE));
-		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
+		if (value != null) {
+			info.setVersion(jsonLong(value, BTCOBJ_INFO_VERSION));
+			info.setProtocolVersion(jsonLong(value, BTCOBJ_INFO_PROTOCOL_VERSION));
+			info.setWalletVersion(jsonLong(value, BTCOBJ_INFO_WALLET_VERSION));
+			info.setBalance(jsonDouble(value, BTCOBJ_INFO_BALANCE));
+			info.setBlocks(jsonLong(value, BTCOBJ_INFO_BLOCKS));
+			info.setTimeOffset(jsonLong(value, BTCOBJ_INFO_TIME_OFFSET));
+			info.setConnections(jsonLong(value, BTCOBJ_INFO_CONNECTIONS));
+			info.setProxy(value.getString(BTCOBJ_INFO_PROXY, ""));
+			info.setDifficulty(jsonDouble(value, BTCOBJ_INFO_DIFFICULTY));
+			info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
+			info.setKeyPoolOldest(jsonLong(value, BTCOBJ_INFO_KEYPOOL_OLDEST));
+			info.setKeyPoolSize(jsonLong(value, BTCOBJ_INFO_KEYPOOL_SIZE));
+			info.setTransactionFee(jsonDouble(value, BTCOBJ_INFO_TRANSACTION_FEE));
+			info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
+		}
 		return info;
 	}
 
 	public BtcLastBlock jsonLastBlock(JsonObject value) throws BtcException {
 		BtcLastBlock lastBlock = new BtcLastBlock();
-		lastBlock.setLastBlock(value
-				.getString(BTCOBJ_LAST_BLOCK_LAST_BLOCK, ""));
-		List<BtcTransaction> transactions = new ArrayList<BtcTransaction>();
-		JsonArray txs = value.getJsonArray(BTCOBJ_LAST_BLOCK_TRANSACTIONS);
-		if (txs != null) {
-			for (JsonObject tx : txs.getValuesAs(JsonObject.class)) {
-				transactions.add(jsonTransaction(tx));
+		if (value != null) {
+			lastBlock.setLastBlock(value
+					.getString(BTCOBJ_LAST_BLOCK_LAST_BLOCK, ""));
+			List<BtcTransaction> transactions = new ArrayList<BtcTransaction>();
+			JsonArray txs = value.getJsonArray(BTCOBJ_LAST_BLOCK_TRANSACTIONS);
+			if (txs != null) {
+				for (JsonObject tx : txs.getValuesAs(JsonObject.class)) {
+					transactions.add(jsonTransaction(tx));
+				}
 			}
+			lastBlock.setTransactions(transactions);
 		}
-		lastBlock.setTransactions(transactions);
 		return lastBlock;
 	}
 
 	public BtcMiningInfo jsonMiningInfo(JsonObject value) throws BtcException {
 		BtcMiningInfo info = new BtcMiningInfo();
-		info.setBlocks(jsonLong(value, BTCOBJ_INFO_BLOCKS));
-		info.setCurrentBlockSize(jsonLong(value, BTCOBJ_INFO_CURRENT_BLOCK_SIZE));
-		info.setCurrentBlockTransactions(jsonLong(value, 
-				BTCOBJ_INFO_CURRENT_BLOCK_TRANSACTIONS));
-		info.setDifficulty(jsonDouble(value, BTCOBJ_INFO_DIFFICULTY));
-		info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
-		info.setGenerate(value.getBoolean(BTCOBJ_INFO_GENERATE, false));
-		info.setGenProcessorLimit(jsonLong(value, BTCOBJ_INFO_PROCESSOR_LIMIT, -1));
-		info.setHashesPerSecond(jsonLong(value, BTCOBJ_INFO_HASHES_PER_SECOND));
-		info.setPooledTransactions(jsonLong(value, 
-				BTCOBJ_INFO_POOLED_TRANSACTIONS));
-		info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
+		if (value != null) {
+			info.setBlocks(jsonLong(value, BTCOBJ_INFO_BLOCKS));
+			info.setCurrentBlockSize(jsonLong(value, BTCOBJ_INFO_CURRENT_BLOCK_SIZE));
+			info.setCurrentBlockTransactions(jsonLong(value, 
+					BTCOBJ_INFO_CURRENT_BLOCK_TRANSACTIONS));
+			info.setDifficulty(jsonDouble(value, BTCOBJ_INFO_DIFFICULTY));
+			info.setErrors(value.getString(BTCOBJ_INFO_ERRORS, ""));
+			info.setGenerate(value.getBoolean(BTCOBJ_INFO_GENERATE, false));
+			info.setGenProcessorLimit(jsonLong(value, BTCOBJ_INFO_PROCESSOR_LIMIT, -1));
+			info.setHashesPerSecond(jsonLong(value, BTCOBJ_INFO_HASHES_PER_SECOND));
+			info.setPooledTransactions(jsonLong(value, 
+					BTCOBJ_INFO_POOLED_TRANSACTIONS));
+			info.setTestnet(value.getBoolean(BTCOBJ_INFO_TESTNET, false));
+		}
 		return info;
 	}
 
 	public BtcMultiSignatureAddress jsonMultiSignatureAddress(JsonObject value)
 			throws BtcException {
 		BtcMultiSignatureAddress address = new BtcMultiSignatureAddress();
-		address.setAddress(value.getString(BTCOBJ_ADDRESS_ADDRESS, ""));
-		address.setRedeemScript(value.getString(BTCOBJ_ADDRESS_REDEEM_SCRIPT,
-				""));
+		if (value != null) {
+			address.setAddress(value.getString(BTCOBJ_ADDRESS_ADDRESS, ""));
+			address.setRedeemScript(value.getString(BTCOBJ_ADDRESS_REDEEM_SCRIPT,
+					""));
+		}
 		return address;
 	}
 
-	public BtcNode jsonNode(JsonObject value) {
+	public BtcNode jsonNode(JsonObject value) throws BtcException {
 		BtcNode node = new BtcNode();
-		node.setAddress(value.getString(BTCOBJ_NODE_ADDRESS, ""));
-		node.setConnected(value.getString(BTCOBJ_NODE_CONNECTED, ""));
+		if (value != null) {
+			node.setAddress(value.getString(BTCOBJ_NODE_ADDRESS, ""));
+			node.setConnected(value.getString(BTCOBJ_NODE_CONNECTED, ""));
+		}
 		return node;
 	}
 
 	public BtcPeer jsonPeer(JsonObject value) throws BtcException {
 		BtcPeer peer = new BtcPeer();
-		peer.setNetworkAddress(value.getString(BTCOBJ_PEER_ADDRESS, ""));
-		peer.setServices(value.getString(BTCOBJ_PEER_SERVICES, ""));
-		peer.setLastSend(jsonLong(value, BTCOBJ_PEER_LAST_SEND));
-		peer.setLastReceived(jsonLong(value, BTCOBJ_PEER_LAST_RECEIVED));
-		peer.setBytesSent(jsonLong(value, BTCOBJ_PEER_BYTES_SENT));
-		peer.setBytesReceived(jsonLong(value, BTCOBJ_PEER_BYTES_RECEIVED));
-		peer.setConnectionTime(jsonLong(value, BTCOBJ_PEER_CONNECTION_TIME));
-		peer.setVersion(jsonLong(value, BTCOBJ_PEER_VERSION));
-		peer.setSubVersion(value.getString(BTCOBJ_PEER_SUBVERSION, ""));
-		peer.setInbound(value.getBoolean(BTCOBJ_PEER_INBOUND, false));
-		peer.setStartingHeight(jsonLong(value, BTCOBJ_PEER_START_HEIGHT));
-		peer.setBanScore(jsonLong(value, BTCOBJ_PEER_BAN_SCORE));
-		peer.setSyncNode(value.getBoolean(BTCOBJ_PEER_SYNC_NODE, false));
+		if (value != null) {
+			peer.setNetworkAddress(value.getString(BTCOBJ_PEER_ADDRESS, ""));
+			peer.setServices(value.getString(BTCOBJ_PEER_SERVICES, ""));
+			peer.setLastSend(jsonLong(value, BTCOBJ_PEER_LAST_SEND));
+			peer.setLastReceived(jsonLong(value, BTCOBJ_PEER_LAST_RECEIVED));
+			peer.setBytesSent(jsonLong(value, BTCOBJ_PEER_BYTES_SENT));
+			peer.setBytesReceived(jsonLong(value, BTCOBJ_PEER_BYTES_RECEIVED));
+			peer.setConnectionTime(jsonLong(value, BTCOBJ_PEER_CONNECTION_TIME));
+			peer.setVersion(jsonLong(value, BTCOBJ_PEER_VERSION));
+			peer.setSubVersion(value.getString(BTCOBJ_PEER_SUBVERSION, ""));
+			peer.setInbound(value.getBoolean(BTCOBJ_PEER_INBOUND, false));
+			peer.setStartingHeight(jsonLong(value, BTCOBJ_PEER_START_HEIGHT));
+			peer.setBanScore(jsonLong(value, BTCOBJ_PEER_BAN_SCORE));
+			peer.setSyncNode(value.getBoolean(BTCOBJ_PEER_SYNC_NODE, false));
+		}
 		return peer;
 	}
 
 	public BtcRawTransaction jsonRawTransaction(JsonObject value)
 			throws BtcException {
 		BtcRawTransaction transaction = new BtcRawTransaction();
-		transaction.setHex(value.getString(BTCOBJ_TX_HEX, ""));
-		transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
-		transaction.setVersion(jsonLong(value, BTCOBJ_TX_VERSION));
-		transaction.setLockTime(jsonLong(value, BTCOBJ_TX_LOCK_TIME));
-		List<BtcTransactionInput> inputTransactions = new ArrayList<BtcTransactionInput>();
-		JsonArray inputs = value.getJsonArray(BTCOBJ_TX_INPUTS);
-		if (inputs != null) {
-			for (JsonObject input : inputs.getValuesAs(JsonObject.class)) {
-				inputTransactions.add(jsonTransactionInput(input));
+		if (value != null) {
+			transaction.setHex(value.getString(BTCOBJ_TX_HEX, ""));
+			transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
+			transaction.setVersion(jsonLong(value, BTCOBJ_TX_VERSION));
+			transaction.setLockTime(jsonLong(value, BTCOBJ_TX_LOCK_TIME));
+			List<BtcTransactionInput> inputTransactions = new ArrayList<BtcTransactionInput>();
+			JsonArray inputs = value.getJsonArray(BTCOBJ_TX_INPUTS);
+			if (inputs != null) {
+				for (JsonObject input : inputs.getValuesAs(JsonObject.class)) {
+					inputTransactions.add(jsonTransactionInput(input));
+				}
 			}
-		}
-		transaction.setInputTransactions(inputTransactions);
-		List<BtcTransactionOutput> outputTransactions = new ArrayList<BtcTransactionOutput>();
-		JsonArray outputs = value.getJsonArray(BTCOBJ_TX_OUTPUTS);
-		if (outputs != null) {
-			for (JsonObject output : outputs.getValuesAs(JsonObject.class)) {
-				outputTransactions.add(jsonTransactionOutput(output));
+			transaction.setInputTransactions(inputTransactions);
+			List<BtcTransactionOutput> outputTransactions = new ArrayList<BtcTransactionOutput>();
+			JsonArray outputs = value.getJsonArray(BTCOBJ_TX_OUTPUTS);
+			if (outputs != null) {
+				for (JsonObject output : outputs.getValuesAs(JsonObject.class)) {
+					outputTransactions.add(jsonTransactionOutput(output));
+				}
 			}
+			transaction.setOutputTransactions(outputTransactions);
+			transaction.setBlockHash(value.getString(BTCOBJ_TX_BLOCK_HASH, ""));
+			transaction.setConfirmations(jsonLong(value, BTCOBJ_TX_CONFIRMATIONS));
+			transaction.setTime(jsonLong(value, BTCOBJ_TX_TIME));
+			transaction.setBlockTime(jsonLong(value, BTCOBJ_TX_BLOCK_TIME));
 		}
-		transaction.setOutputTransactions(outputTransactions);
-		transaction.setBlockHash(value.getString(BTCOBJ_TX_BLOCK_HASH, ""));
-		transaction.setConfirmations(jsonLong(value, BTCOBJ_TX_CONFIRMATIONS));
-		transaction.setTime(jsonLong(value, BTCOBJ_TX_TIME));
-		transaction.setBlockTime(jsonLong(value, BTCOBJ_TX_BLOCK_TIME));
 		return transaction;
 	}
 
 	public BtcScript jsonScript(JsonObject value) throws BtcException {
 		BtcScript script = new BtcScript();
-		script.setAsm(value.getString(BTCOBJ_SCRIPT_ASM, ""));
-		script.setHex(value.getString(BTCOBJ_SCRIPT_HEX, ""));
-		script.setRequiredSignatures(jsonLong(value, 
-				BTCOBJ_SCRIPT_REQUIRED_SIGNATURES));
-		script.setType(BtcScript.Type.getValue(value.getString(
-				BTCOBJ_SCRIPT_TYPE, "")));
-		List<String> addresses = new ArrayList<String>();
-		JsonArray addrs = value.getJsonArray(BTCOBJ_SCRIPT_ADDRESSES);
-		if (addrs != null) {
-			for (JsonString addr : addrs.getValuesAs(JsonString.class)) {
-				addresses.add(addr.getString());
+		if (value != null) {
+			script.setAsm(value.getString(BTCOBJ_SCRIPT_ASM, ""));
+			script.setHex(value.getString(BTCOBJ_SCRIPT_HEX, ""));
+			script.setRequiredSignatures(jsonLong(value, 
+					BTCOBJ_SCRIPT_REQUIRED_SIGNATURES));
+			script.setType(BtcScript.Type.getValue(value.getString(
+					BTCOBJ_SCRIPT_TYPE, "")));
+			List<String> addresses = new ArrayList<String>();
+			JsonArray addrs = value.getJsonArray(BTCOBJ_SCRIPT_ADDRESSES);
+			if (addrs != null) {
+				for (JsonString addr : addrs.getValuesAs(JsonString.class)) {
+					addresses.add(addr.getString());
+				}
 			}
+			script.setAddresses(addresses);
 		}
-		script.setAddresses(addresses);
 		return script;
 	}
 
 	public BtcTransaction jsonTransaction(JsonObject value) throws BtcException {
 		BtcTransaction transaction = new BtcTransaction();
-		transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
-		transaction.setAmount(jsonDouble(value, BTCOBJ_TX_AMOUNT));
-		transaction.setFee(jsonDouble(value, BTCOBJ_TX_FEE));
-		transaction.setConfirmations(jsonLong(value, BTCOBJ_TX_CONFIRMATIONS));
-		transaction.setTime(jsonLong(value, BTCOBJ_TX_TIME));
-		transaction.setTimeReceived(jsonLong(value, BTCOBJ_TX_TIME_RECEIVED));
-		transaction.setBlockHash(value.getString(BTCOBJ_TX_BLOCK_HASH, ""));
-		transaction.setBlockIndex(jsonLong(value, BTCOBJ_TX_BLOCK_INDEX));
-		transaction.setBlockTime(jsonLong(value, BTCOBJ_TX_BLOCK_TIME));
-		List<BtcTransactionDetail> details = new ArrayList<BtcTransactionDetail>();
-		JsonArray txDetails = (JsonArray) value.get(BTCOBJ_TX_DETAILS);
-		if (txDetails != null) {
-			for (JsonObject txDetail : txDetails.getValuesAs(JsonObject.class)) {
-				details.add(jsonTransactionDetail(txDetail));
+		if (value != null) {
+			transaction.setTransaction(value.getString(BTCOBJ_TX_TRANSACTION, ""));
+			transaction.setAmount(jsonDouble(value, BTCOBJ_TX_AMOUNT));
+			transaction.setFee(jsonDouble(value, BTCOBJ_TX_FEE));
+			transaction.setConfirmations(jsonLong(value, BTCOBJ_TX_CONFIRMATIONS));
+			transaction.setTime(jsonLong(value, BTCOBJ_TX_TIME));
+			transaction.setTimeReceived(jsonLong(value, BTCOBJ_TX_TIME_RECEIVED));
+			transaction.setBlockHash(value.getString(BTCOBJ_TX_BLOCK_HASH, ""));
+			transaction.setBlockIndex(jsonLong(value, BTCOBJ_TX_BLOCK_INDEX));
+			transaction.setBlockTime(jsonLong(value, BTCOBJ_TX_BLOCK_TIME));
+			List<BtcTransactionDetail> details = new ArrayList<BtcTransactionDetail>();
+			JsonArray txDetails = (JsonArray) value.get(BTCOBJ_TX_DETAILS);
+			if (txDetails != null) {
+				for (JsonObject txDetail : txDetails.getValuesAs(JsonObject.class)) {
+					details.add(jsonTransactionDetail(txDetail));
+				}
+			} else {
+				details.add(jsonTransactionDetail(value));
 			}
-		} else {
-			details.add(jsonTransactionDetail(value));
+			transaction.setDetails(details);
 		}
-		transaction.setDetails(details);
 		return transaction;
 	}
 
 	public BtcTransactionDetail jsonTransactionDetail(JsonObject value)
 			throws BtcException {
 		BtcTransactionDetail detail = new BtcTransactionDetail();
-		detail.setAccount(value.getString(BTCOBJ_TX_DETAIL_ACCOUNT, ""));
-		detail.setAddress(value.getString(BTCOBJ_TX_DETAIL_ADDRESS, ""));
-		detail.setCategory(BtcTransaction.Category.getValue(value.getString(
-				BTCOBJ_TX_DETAIL_CATEGORY, "")));
-		detail.setAmount(jsonDouble(value, BTCOBJ_TX_DETAIL_AMOUNT));
-		detail.setFee(jsonDouble(value, BTCOBJ_TX_DETAIL_FEE));
+		if (value != null) {
+			detail.setAccount(value.getString(BTCOBJ_TX_DETAIL_ACCOUNT, ""));
+			detail.setAddress(value.getString(BTCOBJ_TX_DETAIL_ADDRESS, ""));
+			detail.setCategory(BtcTransaction.Category.getValue(value.getString(
+					BTCOBJ_TX_DETAIL_CATEGORY, "")));
+			detail.setAmount(jsonDouble(value, BTCOBJ_TX_DETAIL_AMOUNT));
+			detail.setFee(jsonDouble(value, BTCOBJ_TX_DETAIL_FEE));
+		}
 		return detail;
 	}
 
 	public BtcTransactionInput jsonTransactionInput(JsonObject value)
 			throws BtcException {
 		BtcTransactionInput input = new BtcTransactionInput();
-		input.setTransaction(value.getString(BTCOBJ_TX_INPUT_TRANSACTION, ""));
-		input.setOutput(jsonLong(value, BTCOBJ_TX_INPUT_OUTPUT));
-		JsonObject scriptSignature = value
-				.getJsonObject(BTCOBJ_TX_INPUT_SCRIPT_SIGNATURE);
-		if (scriptSignature != null) {
-			input.setScriptSignature(jsonScript(scriptSignature));
+		if (value != null) {
+			input.setTransaction(value.getString(BTCOBJ_TX_INPUT_TRANSACTION, ""));
+			input.setOutput(jsonLong(value, BTCOBJ_TX_INPUT_OUTPUT));
+			JsonObject scriptSignature = value
+					.getJsonObject(BTCOBJ_TX_INPUT_SCRIPT_SIGNATURE);
+			if (scriptSignature != null) {
+				input.setScriptSignature(jsonScript(scriptSignature));
+			}
+			input.setSequence(jsonLong(value, BTCOBJ_TX_INPUT_SEQUENCE));
 		}
-		input.setSequence(jsonLong(value, BTCOBJ_TX_INPUT_SEQUENCE));
 		return input;
 	}
 
 	public BtcTransactionOutput jsonTransactionOutput(JsonObject value)
 			throws BtcException {
 		BtcTransactionOutput output = new BtcTransactionOutput();
-		output.setAmount(jsonDouble(value, BTCOBJ_TX_OUTPUT_VALUE));
-		output.setIndex(jsonLong(value, BTCOBJ_TX_OUTPUT_INDEX));
-		JsonObject scriptPublicKey = value
-				.getJsonObject(BTCOBJ_TX_OUTPUT_SCRIPT_PUBLIC_KEY);
-		if (scriptPublicKey != null) {
-			output.setScriptPublicKey(jsonScript(scriptPublicKey));
+		if (value != null) {
+			output.setAmount(jsonDouble(value, BTCOBJ_TX_OUTPUT_VALUE));
+			output.setIndex(jsonLong(value, BTCOBJ_TX_OUTPUT_INDEX));
+			JsonObject scriptPublicKey = value
+					.getJsonObject(BTCOBJ_TX_OUTPUT_SCRIPT_PUBLIC_KEY);
+			if (scriptPublicKey != null) {
+				output.setScriptPublicKey(jsonScript(scriptPublicKey));
+			}
 		}
 		return output;
 	}
@@ -666,50 +710,56 @@ public class BtcJsonRpcHttpClient {
 	public BtcTransactionOutputSet jsonTransactionOutputSet(JsonObject value)
 			throws BtcException {
 		BtcTransactionOutputSet output = new BtcTransactionOutputSet();
-		output.setHeight(jsonLong(value, BTCOBJ_TX_OUTPUT_SET_HEIGHT));
-		output.setBestBlock(value
-				.getString(BTCOBJ_TX_OUTPUT_SET_BEST_BLOCK, ""));
-		output.setTransactions(jsonLong(value, BTCOBJ_TX_OUTPUT_SET_TRANSACTIONS));
-		output.setOutputTransactions(jsonLong(value, 
-				BTCOBJ_TX_OUTPUT_SET_OUTPUT_TRANSACTIONS));
-		output.setBytesSerialized(jsonLong(value, 
-				BTCOBJ_TX_OUTPUT_SET_BYTES_SERIALIZED));
-		output.setHashSerialized(value.getString(
-				BTCOBJ_TX_OUTPUT_SET_HASH_SERIALIZED, ""));
-		output.setTotalAmount(jsonDouble(value, BTCOBJ_TX_OUTPUT_SET_TOTAL_AMOUNT));
+		if (value != null) {
+			output.setHeight(jsonLong(value, BTCOBJ_TX_OUTPUT_SET_HEIGHT));
+			output.setBestBlock(value
+					.getString(BTCOBJ_TX_OUTPUT_SET_BEST_BLOCK, ""));
+			output.setTransactions(jsonLong(value, BTCOBJ_TX_OUTPUT_SET_TRANSACTIONS));
+			output.setOutputTransactions(jsonLong(value, 
+					BTCOBJ_TX_OUTPUT_SET_OUTPUT_TRANSACTIONS));
+			output.setBytesSerialized(jsonLong(value, 
+					BTCOBJ_TX_OUTPUT_SET_BYTES_SERIALIZED));
+			output.setHashSerialized(value.getString(
+					BTCOBJ_TX_OUTPUT_SET_HASH_SERIALIZED, ""));
+			output.setTotalAmount(jsonDouble(value, BTCOBJ_TX_OUTPUT_SET_TOTAL_AMOUNT));
+		}
 		return output;
 	}
 	
-	public BtcTransactionTemplate jsonTransactionTemplate(JsonObject value) {
+	public BtcTransactionTemplate jsonTransactionTemplate(JsonObject value) throws BtcException {
 		BtcTransactionTemplate template = new BtcTransactionTemplate();
+		if (value != null) {
+		}
 		return template;
 	}
 	
 	public BtcWork jsonWork(JsonObject value)
 			throws BtcException {
 		BtcWork work = new BtcWork();
-		work.setMidState(value
-				.getString(BTCOBJ_WORK_MIDSTATE, ""));
-		work.setData(value
-				.getString(BTCOBJ_WORK_DATA, ""));
-		work.setHash(value
-				.getString(BTCOBJ_WORK_HASH, ""));
-		work.setTarget(value
-				.getString(BTCOBJ_WORK_TARGET, ""));
+		if (value != null) {
+			work.setMidState(value
+					.getString(BTCOBJ_WORK_MIDSTATE, ""));
+			work.setData(value
+					.getString(BTCOBJ_WORK_DATA, ""));
+			work.setHash(value
+					.getString(BTCOBJ_WORK_HASH, ""));
+			work.setTarget(value
+					.getString(BTCOBJ_WORK_TARGET, ""));
+		}
 		return work;
 	}
 	
-	public long jsonLong(JsonObject value, String key) {
+	public long jsonLong(JsonObject value, String key) throws BtcException {
 		JsonNumber number = value.getJsonNumber(key);
 		return (number == null)? 0: number.longValueExact();
 	}
 	
-	public long jsonLong(JsonObject value, String key, long defaultValue) {
+	public long jsonLong(JsonObject value, String key, long defaultValue) throws BtcException {
 		JsonNumber number = value.getJsonNumber(key);
 		return (number == null)? defaultValue: number.longValueExact();
 	}
 	
-	public BigDecimal jsonDouble(JsonObject value, String key) {
+	public BigDecimal jsonDouble(JsonObject value, String key) throws BtcException {
 		JsonNumber number = value.getJsonNumber(key);
 		return (number == null)? BigDecimal.ZERO: number.bigDecimalValue();
 	}

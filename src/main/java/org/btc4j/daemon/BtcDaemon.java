@@ -46,6 +46,7 @@ import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcApi;
 import org.btc4j.core.BtcBlock;
+import org.btc4j.core.BtcBlockSubmission;
 import org.btc4j.core.BtcBlockTemplate;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
@@ -65,8 +66,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_ADD_NODE = "addnode";
 	private static final String BTCAPI_BACKUP_WALLET = "backupwallet";
 	private static final String BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS = "createmultisig";
-	// private static final String BTCAPI_CREATE_RAW_TRANSACTION =
-	// "createrawtransaction";
+	// private static final String BTCAPI_CREATE_RAW_TRANSACTION = "createrawtransaction";
 	private static final String BTCAPI_DECODE_RAW_TRANSACTION = "decoderawtransaction";
 	private static final String BTCAPI_DUMP_PRIVATE_KEY = "dumpprivkey";
 	private static final String BTCAPI_GET_ACCOUNT = "getaccount";
@@ -109,17 +109,15 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_MOVE = "move";
 	private static final String BTCAPI_SEND_FROM = "sendfrom";
 	private static final String BTCAPI_SEND_MANY = "sendmany";
-	// private static final String BTCAPI_SEND_RAW_TRANSACTION =
-	// "sendrawtransaction";
+	// private static final String BTCAPI_SEND_RAW_TRANSACTION = "sendrawtransaction";
 	private static final String BTCAPI_SEND_TO_ADDRESS = "sendtoaddress";
 	private static final String BTCAPI_SET_ACCOUNT = "setaccount";
 	private static final String BTCAPI_SET_GENERATE = "setgenerate";
 	private static final String BTCAPI_SET_TRANSACTION_FEE = "settxfee";
 	private static final String BTCAPI_SIGN_MESSAGE = "signmessage";
-	// private static final String BTCAPI_SIGN_RAW_TRANSACTION =
-	// "signrawtransaction";
+	// private static final String BTCAPI_SIGN_RAW_TRANSACTION = "signrawtransaction";
 	private static final String BTCAPI_STOP = "stop";
-	// private static final String BTCAPI_SUBMIT_BLOCK = "submitblock";
+	private static final String BTCAPI_SUBMIT_BLOCK = "submitblock";
 	private static final String BTCAPI_VALIDATE_ADDRESS = "validateaddress";
 	private static final String BTCAPI_VERIFY_MESSAGE = "verifymessage";
 	private static final String BTCAPI_WALLET_LOCK = "walletlock";
@@ -959,14 +957,45 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		JsonString results = (JsonString) invoke(BTCAPI_STOP);
 		return results.getString();
 	}
-
-	// TODO
-	@Override
-	public void submitBlock(String data, List<Object> params)
+	
+	public BtcBlockSubmission submitBlock(String data)
 			throws BtcException {
-		throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-				BtcException.BTC4J_ERROR_MESSAGE + ": "
-						+ BtcException.BTC4J_ERROR_DATA_NOT_IMPLEMENTED);
+		return submitBlock(data, "", null);
+	}
+
+	public BtcBlockSubmission submitBlock(String data, String workId)
+			throws BtcException {
+		return submitBlock(data, workId, null);
+	}
+	
+	@Override
+	public BtcBlockSubmission submitBlock(String data, String workId, Map<String, String> params)
+			throws BtcException {
+		JsonObjectBuilder request = Json.createObjectBuilder()
+				.add(BtcBlockSubmission.PARAM_WORK_ID, BtcUtil.notNull(workId));
+		if (params != null) {
+			for (String key : params.keySet()) {
+				request.add(key, params.get(key));
+			}
+		}
+		JsonArray parameters = Json.createArrayBuilder().add(BtcUtil.notNull(data)).add(request).build();
+		JsonValue results = invoke(BTCAPI_SUBMIT_BLOCK,
+				parameters);
+		if (results == null) {
+			BtcBlockSubmission submission = new BtcBlockSubmission();
+			submission.setAccepted(true);
+			return submission;
+		} else {
+			if ((results.getValueType().equals(JsonValue.ValueType.STRING)) && (results instanceof JsonString)) {
+				JsonString reason = (JsonString) results;
+				BtcBlockSubmission submission = new BtcBlockSubmission();
+				List<String> reasons = new ArrayList<String>();
+				reasons.add(reason.getString());
+				submission.setReasons(reasons);
+				return submission;
+			}
+		}
+		return jsonBlockSubmission((JsonObject) results);		
 	}
 
 	@Override

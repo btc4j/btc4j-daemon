@@ -41,7 +41,9 @@ import org.btc4j.core.BtcAccount;
 import org.btc4j.core.BtcAddedNode;
 import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
+import org.btc4j.core.BtcBlockSubmission;
 import org.btc4j.core.BtcBlockTemplate;
+import org.btc4j.core.BtcCoinBase;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
@@ -53,6 +55,7 @@ import org.btc4j.core.BtcRawTransaction;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
 import org.btc4j.core.BtcTransactionOutputSet;
+import org.btc4j.core.BtcTransactionTemplate;
 import org.btc4j.core.BtcWork;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -348,6 +351,15 @@ public class BtcDaemonTest {
 	public void getBlockTemplate() throws BtcException {
 		BtcBlockTemplate block = BITCOIND_WITH_LISTENER.getBlockTemplate(null);
 		assertNotNull(block);
+		assertNotNull(block.getMutable());
+		List<BtcTransactionTemplate> transactions = block.getTransactions();
+		assertNotNull(transactions);
+		for (BtcTransactionTemplate transaction : transactions) {
+			assertNotNull(transaction.getData());
+		}
+		BtcCoinBase coin = block.getCoinBase();
+		assertNotNull(coin);
+		assertNotNull(coin.getAuxiliary());
 	}
 
 	@Test
@@ -725,9 +737,11 @@ public class BtcDaemonTest {
 				new ArrayList<String>());
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void submitBlock() throws BtcException {
-		BITCOIND_WITH_LISTENER.submitBlock("", new ArrayList<Object>());
+		BtcBlockSubmission submission = BITCOIND_WITHOUT_LISTENER.submitBlock("0000000266354a01810b6fa52baa1245ebcee84b0f2a8d38425f55f7000abb34000000000b083510d119e47d1b2f2d603c13a9d41ab287a49b722fe70b963f31e6b5b21e52e799db1b112c8600000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000");
+		assertNotNull(submission);
+		assertFalse(submission.isAccepted());
 	}
 
 	@Test

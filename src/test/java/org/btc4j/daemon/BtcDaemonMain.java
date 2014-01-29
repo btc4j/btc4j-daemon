@@ -25,6 +25,8 @@
 package org.btc4j.daemon;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BtcDaemonMain {
 
@@ -48,7 +50,10 @@ public class BtcDaemonMain {
 			//capabilities.add(BtcBlockTemplate.Capability.COINBASEVALUE);
 			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(capabilities, BtcBlockTemplate.Mode.TEMPLATE));
 			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(null, BtcBlockTemplate.Mode.TEMPLATE));
-			daemon.stop();
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("longpollid", "");
+			System.out.println("submitblock: " + daemon.submitBlock("0000000266354a01810b6fa52baa1245ebcee84b0f2a8d38425f55f7000abb34000000000b083510d119e47d1b2f2d603c13a9d41ab287a49b722fe70b963f31e6b5b21e52e799db1b112c8600000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000", "", params));
+			//daemon.stop();
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
