@@ -47,9 +47,9 @@
 </ul><p>bitcoind API development status (out of a total of 61 commands):</p>
 
 <ul>
-<li>Completed and verified: 51</li>
-<li>Work in progress: 2</li>
-<li>Not yet implemented: 8</li>
+<li>Completed and verified: 55</li>
+<li>Need more testing: 2 (raw transaction and mining commands)</li>
+<li>Not yet implemented: 4 (raw transaction commands)</li>
 </ul><p>Notification subsystem development status:</p>
 
 <ul>
@@ -76,11 +76,11 @@
 <p>Connect to a bitcoind process:</p>
 
 <div class="highlight highlight-java"><pre><span class="c1">// bitcoind URL, rpc user/account, rpc password</span>
-<span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BtcDaemon</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">"http://127.0.0.1:18332"</span><span class="o">),</span>
-                        <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">);</span>
+<span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BtcDaemon</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">"https://127.0.0.1:18332"</span><span class="o">),</span>
+                    <span class="s">"rpcuser"</span><span class="o">,</span> <span class="s">"GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj"</span><span class="o">);</span>
 <span class="n">BtcInfo</span> <span class="n">info</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getInfo</span><span class="o">();</span>
-<span class="n">String</span> <span class="n">address</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getAccountAddress</span><span class="o">(</span><span class="s">"user"</span><span class="o">);</span>
-<span class="n">daemon</span><span class="o">.</span><span class="na">walletPassphrase</span><span class="o">(</span><span class="s">"password"</span><span class="o">);</span>
+<span class="n">String</span> <span class="n">address</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getAccountAddress</span><span class="o">(</span><span class="s">"rpcuser"</span><span class="o">);</span>
+<span class="n">daemon</span><span class="o">.</span><span class="na">walletPassphrase</span><span class="o">(</span><span class="s">"GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj"</span><span class="o">);</span>
 <span class="n">daemon</span><span class="o">.</span><span class="na">sendToAddress</span><span class="o">(</span><span class="s">"mm48fadf1wJVF341ArWmtwZZGV8s34UGWD"</span><span class="o">,</span> <span class="mf">2.5</span><span class="o">);</span> 
 <span class="n">daemon</span><span class="o">.</span><span class="na">walletLock</span><span class="o">();</span>
 <span class="n">String</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span> <span class="c1">// will stop bitcoind, not required</span>
@@ -90,7 +90,7 @@
 
 <div class="highlight highlight-java"><pre><span class="c1">// bitcoind URL, rpc user/account, rpc password, notification ports </span>
 <span class="n">BtcDaemon</span> <span class="n">daemon</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BtcDaemon</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">"http://127.0.0.1:18332"</span><span class="o">),</span>
-                        <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">18334</span><span class="o">,</span> <span class="mi">18335</span><span class="o">,</span> <span class="mi">18336</span><span class="o">);</span>
+                    <span class="s">"user"</span><span class="o">,</span> <span class="s">"password"</span><span class="o">,</span> <span class="mi">18334</span><span class="o">,</span> <span class="mi">18335</span><span class="o">,</span> <span class="mi">18336</span><span class="o">);</span>
 <span class="n">daemon</span><span class="o">.</span><span class="na">getWalletListener</span><span class="o">().</span><span class="na">addObserver</span><span class="o">(</span><span class="k">new</span> <span class="n">Observer</span><span class="o">()</span> <span class="o">{</span>
     <span class="nd">@Override</span>
     <span class="kd">public</span> <span class="kt">void</span> <span class="nf">update</span><span class="o">(</span><span class="n">Observable</span> <span class="n">o</span><span class="o">,</span> <span class="n">Object</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span>
