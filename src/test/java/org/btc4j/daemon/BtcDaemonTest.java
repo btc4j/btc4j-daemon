@@ -43,7 +43,7 @@ import org.btc4j.core.BtcAddress;
 import org.btc4j.core.BtcBlock;
 import org.btc4j.core.BtcBlockSubmission;
 import org.btc4j.core.BtcBlockTemplate;
-import org.btc4j.core.BtcCoinBase;
+import org.btc4j.core.BtcCoinbase;
 import org.btc4j.core.BtcException;
 import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
@@ -52,8 +52,10 @@ import org.btc4j.core.BtcNode;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcInfo;
 import org.btc4j.core.BtcRawTransaction;
+import org.btc4j.core.BtcScript;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
+import org.btc4j.core.BtcTransactionOutput;
 import org.btc4j.core.BtcTransactionOutputSet;
 import org.btc4j.core.BtcTransactionTemplate;
 import org.btc4j.core.BtcWork;
@@ -91,6 +93,7 @@ public class BtcDaemonTest {
 	private static final String BITCOIND_TRANSACTION_1 = "98dafef582ae53e8af30e8ad09577bbd472d4bf24a173121d58a5900747fd082";
 	private static final String BITCOIND_TRANSACTION_2 = "5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099";
 	private static final String BITCOIND_RAW_TRANSACTION_1 = "010000000110f7af4e331b02cb2d0300bc879c65803274969da9aa305bade614058b32152d010000006b4830450220744d68a227a390e170e0f7d23ecb41ef883d6b1059d0e8b04cd6b00db2b0fd12022100d61a88715e6f0b192c4d09b8a302e93c7eb202c4346386d918a0668caa57df6c012102d94d41c62b1d0cd455772bcca8be0ffbbcee3c7bc87e6ee79689715137b96abeffffffff0240787d01000000001976a914ca8ac94e5f147ed553a0d8e6497e0bfa7e53a92588ac00e1f505000000001976a9149006180537784880b99fc57efdf25eee152cdd4588ac00000000";
+	private static final String BITCOIND_RAW_TRANSACTION_2 = "e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788";
 	private static final String BITCOIND_PRIVATE_KEY = "cQ57cLoFkYRSAZJGkYMc8cTCoJhaQVEqSYNuVuUySzuLATFQ4Vcr";
 	private static final String BITCOIND_ALERT = "bitcoin daemon test alert";
 	private static final String BITCOIND_MESSAGE = "HELLO WORLD";
@@ -308,10 +311,8 @@ public class BtcDaemonTest {
 	public void getBalance() throws BtcException {
 		BigDecimal balance = BITCOIND_WITH_LISTENER.getBalance("", -1);
 		assertNotNull(balance);
-		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 		balance = BITCOIND_WITH_LISTENER.getBalance(BITCOIND_ACCOUNT, 2);
 		assertNotNull(balance);
-		assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
 	}
 
 	@Test
@@ -357,9 +358,9 @@ public class BtcDaemonTest {
 		for (BtcTransactionTemplate transaction : transactions) {
 			assertNotNull(transaction.getData());
 		}
-		BtcCoinBase coin = block.getCoinBase();
+		BtcCoinbase coin = block.getCoinbase();
 		assertNotNull(coin);
-		assertNotNull(coin.getAuxiliary());
+		assertNotNull(coin.getAux());
 	}
 
 	@Test
@@ -440,7 +441,7 @@ public class BtcDaemonTest {
 	@Test
 	public void getRawTransaction() throws BtcException {
 		BtcRawTransaction transaction = BITCOIND_WITH_LISTENER
-				.getRawTransaction(BITCOIND_TRANSACTION_1, true);
+				.getRawTransaction(BITCOIND_RAW_TRANSACTION_2, true);
 		assertNotNull(transaction);
 	}
 
@@ -479,9 +480,13 @@ public class BtcDaemonTest {
 
 	@Test
 	public void getTransactionOutput() throws BtcException {
-		String output = BITCOIND_WITH_LISTENER.getTransactionOutput(BITCOIND_TRANSACTION_1, false);
+		BtcTransactionOutput output = BITCOIND_WITHOUT_LISTENER.getTransactionOutput(BITCOIND_RAW_TRANSACTION_2, 1);
 		assertNotNull(output);
-		output = BITCOIND_WITH_LISTENER.getTransactionOutput(BITCOIND_TRANSACTION_1, 1, true);
+		assertNotNull(output.getValue());
+		BtcScript script = output.getScript();
+		assertNotNull(script);
+		assertNotNull(script.getPublicKey());
+		output = BITCOIND_WITH_LISTENER.getTransactionOutput(BITCOIND_RAW_TRANSACTION_2, 0, true);
 		assertNotNull(output);
 	}
 
@@ -558,8 +563,8 @@ public class BtcDaemonTest {
 
 	@Test
 	public void listLockUnspent() throws BtcException {
-		List<String> unspents = BITCOIND_WITH_LISTENER.listLockUnspent();
-		assertNotNull(unspents);
+		List<String> unspent = BITCOIND_WITH_LISTENER.listLockUnspent();
+		assertNotNull(unspent);
 	}
 
 	@Test
@@ -613,9 +618,19 @@ public class BtcDaemonTest {
 		assertNotNull(transactions);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void listUnspent() throws BtcException {
-		BITCOIND_WITH_LISTENER.listUnspent(0, 0);
+		List<BtcTransactionOutput> unspent = BITCOIND_WITHOUT_LISTENER.listUnspent();
+		assertNotNull(unspent);
+		for (BtcTransactionOutput output : unspent) {
+			assertNotNull(output);
+			BtcScript script = output.getScript();
+			assertNotNull(script);
+			assertNotNull(script.getPublicKey());
+			BtcTransactionDetail detail = output.getDetail();
+			assertNotNull(detail);
+			assertNotNull(detail.getAddress());
+		}
 	}
 
 	@Test(expected = BtcException.class)
