@@ -30,98 +30,11 @@ public class BtcDaemonMain {
 
 	public static void main(String[] args) {
 		try {
-			BtcDaemon daemon = new BtcDaemon(new URL("https://127.0.0.1:18332"), "user", "password");
-			daemon.help("gettxout");
-			//daemon.walletLock();
-			//daemon.walletPassphrase("password");
-			//daemon.walletPassphrase("password");
-			//System.out.println("getbalance: " + daemon.getBalance(""));
-			//System.out.println("sendtoaddress: " + daemon.sendToAddress("mvDicKjyxUxJFt1icwbZjsJ7HnkAgVgbHj", 0.06));
-			//System.out.println("getbalance: " + daemon.getBalance(""));
-			//System.out.println("getbalance user: " + daemon.getBalance("user"));
-			//System.out.println("getrawtransaction: " + daemon.getRawTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788", true));
-			//System.out.println("gettransaction: " + daemon.getTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788"));
-			//System.out.println("getwork: " + daemon.getWork());
-			//System.out.println("getwork: " + daemon.getWork("0000000266354a01810b6fa52baa1245ebcee84b0f2a8d38425f55f7000abb34000000000b083510d119e47d1b2f2d603c13a9d41ab287a49b722fe70b963f31e6b5b21e52e799db1b112c8600000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000"));
-			//List<BtcBlockTemplate.Capability> capabilities = new ArrayList<BtcBlockTemplate.Capability>();
-			//capabilities.add(BtcBlockTemplate.Capability.WORKID);
-			//capabilities.add(BtcBlockTemplate.Capability.COINBASEVALUE);
-			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(capabilities, BtcBlockTemplate.Mode.TEMPLATE));
-			//System.out.println("getblocktemplate: " + daemon.getBlockTemplate(null, BtcBlockTemplate.Mode.TEMPLATE));
-			//Map<String, String> params = new HashMap<String, String>();
-			//params.put("longpollid", "");
-			//System.out.println("submitblock: " + daemon.submitBlock("0000000266354a01810b6fa52baa1245ebcee84b0f2a8d38425f55f7000abb34000000000b083510d119e47d1b2f2d603c13a9d41ab287a49b722fe70b963f31e6b5b21e52e799db1b112c8600000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000", "", params));
-			//System.out.println("gettxoutsetinfo: " + daemon.getTransactionOutputSetInformation());
-			//System.out.println("getrawtransaction: " + daemon.getRawTransaction("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788", true));
-			System.out.println("gettxout: " + daemon.getTransactionOutput("e96404552c900fcf2d8ae797babc1ae0dac7e849856162da9fd90e35a18a6788", true));
-			System.out.println("listunspent: " + daemon.listUnspent());
-			//daemon.stop();
+			BtcDaemon daemon = new BtcDaemon(new URL("https://127.0.0.1:18332"), "user", "password", 120000);
+			daemon.help("signrawtransaction");
+			daemon.stop();
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
 }
-/*
-addmultisigaddress <nrequired> <'["key","key"]'> [account]
-addnode <node> <add|remove|onetry>
-backupwallet <destination>
-createmultisig <nrequired> <'["key","key"]'>
-createrawtransaction [{"txid":txid,"vout":n},...] {address:amount,...}
-decoderawtransaction <hex string>
-dumpprivkey <bitcoinaddress>
-getaccount <bitcoinaddress>
-getaccountaddress <account>
-getaddednodeinfo <dns> [node]
-getaddressesbyaccount <account>
-getbalance [account] [minconf=1]
-getblock <hash>
-getblockcount
-getblockhash <index>
-getblocktemplate [params]
-getconnectioncount
-getdifficulty
-getgenerate
-gethashespersec
-getinfo
-getmininginfo
-getnewaddress [account]
-getpeerinfo
-getrawmempool
-getrawtransaction <txid> [verbose=0]
-getreceivedbyaccount <account> [minconf=1]
-getreceivedbyaddress <bitcoinaddress> [minconf=1]
-gettransaction <txid>
-gettxout <txid> <n> [includemempool=true]
-gettxoutsetinfo
-getwork [data]
-help [command]
-importprivkey <bitcoinprivkey> [label] [rescan=true]
-keypoolrefill
-listaccounts [minconf=1]
-listaddressgroupings
-listlockunspent
-listreceivedbyaccount [minconf=1] [includeempty=false]
-listreceivedbyaddress [minconf=1] [includeempty=false]
-listsinceblock [blockhash] [target-confirmations]
-listtransactions [account] [count=10] [from=0]
-listunspent [minconf=1] [maxconf=9999999]  ["address",...]
-lockunspent unlock? [array-of-Objects]
-move <fromaccount> <toaccount> <amount> [minconf=1] [comment]
-sendfrom <fromaccount> <tobitcoinaddress> <amount> [minconf=1] [comment] [comment-to]
-sendmany <fromaccount> {address:amount,...} [minconf=1] [comment]
-sendrawtransaction <hex string>
-sendtoaddress <bitcoinaddress> <amount> [comment] [comment-to]
-setaccount <bitcoinaddress> <account>
-setgenerate <generate> [genproclimit]
-settxfee <amount>
-signmessage <bitcoinaddress> <message>
-signrawtransaction <hex string> [{"txid":txid,"vout":n,"scriptPubKey":hex,"redeemScript":hex},...] [<privatekey1>,...] [sighashtype="ALL"]
-stop
-submitblock <hex data> [optional-params-obj]
-validateaddress <bitcoinaddress>
-verifymessage <bitcoinaddress> <signature> <message>
-walletlock
-walletpassphrase <passphrase> <timeout>
-walletpassphrasechange <oldpassphrase> <newpassphrase>
-*/
-

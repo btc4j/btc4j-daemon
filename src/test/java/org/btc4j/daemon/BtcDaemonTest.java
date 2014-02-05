@@ -55,8 +55,9 @@ import org.btc4j.core.BtcRawTransaction;
 import org.btc4j.core.BtcScript;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
-import org.btc4j.core.BtcTransactionOutput;
-import org.btc4j.core.BtcTransactionOutputSet;
+import org.btc4j.core.BtcOutput;
+import org.btc4j.core.BtcOutputSet;
+import org.btc4j.core.BtcOutputPart;
 import org.btc4j.core.BtcTransactionTemplate;
 import org.btc4j.core.BtcWork;
 import org.junit.AfterClass;
@@ -230,10 +231,20 @@ public class BtcDaemonTest {
 		assertTrue(multiSig.getRedeemScript().length() >= 0);
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("creates transaction")
+	@Test
 	public void createRawTransaction() throws BtcException {
-		BITCOIND_WITH_LISTENER.createRawTransaction(new ArrayList<Object>(),
-				new ArrayList<Object>());
+		List<BtcOutputPart> outputs = new ArrayList<BtcOutputPart>();
+		BtcOutputPart output = new BtcOutputPart();
+		output.setTransaction("51b6d6cac045d8d9c589e6d60afbb715559120fe1c9277a6c45830f4143be0f5");
+		outputs.add(output);
+		Map<String, BigDecimal> amounts = new HashMap<String, BigDecimal>();
+		amounts.put("mtcFdv3tf2qmDtg5VtUyEpRDJjXkbWYz13", BigDecimal.valueOf(0.008));
+		amounts.put("miUYGiacXRuY5Mc6deEtuSDPJRuygja9gU", BigDecimal.valueOf(0.0072));
+		String hex = BITCOIND_WITHOUT_LISTENER.createRawTransaction(outputs, amounts);
+		assertNotNull(hex);
+		BtcRawTransaction rawTx = BITCOIND_WITH_LISTENER.decodeRawTransaction(hex);
+		assertNotNull(rawTx);
 	}
 
 	@Test
@@ -480,7 +491,7 @@ public class BtcDaemonTest {
 
 	@Test
 	public void getTransactionOutput() throws BtcException {
-		BtcTransactionOutput output = BITCOIND_WITHOUT_LISTENER.getTransactionOutput(BITCOIND_RAW_TRANSACTION_2, 1);
+		BtcOutput output = BITCOIND_WITHOUT_LISTENER.getTransactionOutput(BITCOIND_RAW_TRANSACTION_2, 1);
 		assertNotNull(output);
 		assertNotNull(output.getValue());
 		BtcScript script = output.getScript();
@@ -492,7 +503,7 @@ public class BtcDaemonTest {
 
 	@Test
 	public void getTransactionOutputSetInformation() throws BtcException {
-		BtcTransactionOutputSet txOutputSet = BITCOIND_WITH_LISTENER
+		BtcOutputSet txOutputSet = BITCOIND_WITH_LISTENER
 				.getTransactionOutputSetInformation();
 		assertNotNull(txOutputSet);
 		assertTrue(txOutputSet.getHeight() >= 0);
@@ -529,8 +540,10 @@ public class BtcDaemonTest {
 	@Ignore("needs new key")
 	@Test
 	public void importPrivateKey() throws BtcException {
+		BITCOIND_WITHOUT_LISTENER.walletUnlock(BITCOIND_PASSWORD, 300);
 		BITCOIND_WITH_LISTENER
 				.importPrivateKey(BITCOIND_PRIVATE_KEY, "", true);
+		BITCOIND_WITHOUT_LISTENER.walletLock();
 	}
 
 	@Test
@@ -563,8 +576,12 @@ public class BtcDaemonTest {
 
 	@Test
 	public void listLockUnspent() throws BtcException {
-		List<String> unspent = BITCOIND_WITH_LISTENER.listLockUnspent();
+		List<BtcOutputPart> unspent = BITCOIND_WITHOUT_LISTENER.listLockUnspent();
 		assertNotNull(unspent);
+		for (BtcOutputPart output : unspent) {
+			assertNotNull(output);
+			assertNotNull(output.getTransaction());
+		}
 	}
 
 	@Test
@@ -620,9 +637,9 @@ public class BtcDaemonTest {
 
 	@Test
 	public void listUnspent() throws BtcException {
-		List<BtcTransactionOutput> unspent = BITCOIND_WITHOUT_LISTENER.listUnspent();
+		List<BtcOutput> unspent = BITCOIND_WITHOUT_LISTENER.listUnspent();
 		assertNotNull(unspent);
-		for (BtcTransactionOutput output : unspent) {
+		for (BtcOutput output : unspent) {
 			assertNotNull(output);
 			BtcScript script = output.getScript();
 			assertNotNull(script);
@@ -633,9 +650,24 @@ public class BtcDaemonTest {
 		}
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void lockUnspent() throws BtcException {
-		BITCOIND_WITH_LISTENER.lockUnspent(false, new ArrayList<Object>());
+		List<BtcOutputPart> outputs = new ArrayList<BtcOutputPart>();
+		BtcOutputPart output = new BtcOutputPart();
+		output.setTransaction("51b6d6cac045d8d9c589e6d60afbb715559120fe1c9277a6c45830f4143be0f5");
+		outputs.add(output);
+		output = new BtcOutputPart();
+		output.setTransaction("5cfc16d9937e4ad36686b829942b0a7ab088750bc3008a71cd0a13ccf4ac1099");
+		output.setOutput(1);
+		outputs.add(output);
+		assertTrue(BITCOIND_WITH_LISTENER.lockUnspent(outputs));
+		List<BtcOutputPart> unspent = BITCOIND_WITHOUT_LISTENER.listLockUnspent();
+		assertNotNull(unspent);
+		assertEquals(2, unspent.size());
+		assertTrue(BITCOIND_WITHOUT_LISTENER.unlockUnspent(outputs));
+		unspent = BITCOIND_WITHOUT_LISTENER.listLockUnspent();
+		assertNotNull(unspent);
+		assertEquals(0, unspent.size());
 	}
 
 	@Ignore("moves bitcoins")
@@ -693,9 +725,11 @@ public class BtcDaemonTest {
 		}
 	}
 
-	@Test(expected = BtcException.class)
+	@Ignore("rejected")
+	@Test
 	public void sendRawTransaction() throws BtcException {
-		BITCOIND_WITH_LISTENER.sendRawTransaction("");
+		BtcTransaction transaction = BITCOIND_WITH_LISTENER.sendRawTransaction("0100000001f5e03b14f43058c4a677921cfe20915515b7fb0ad6e689c5d9d845c0cad6b651000000006b48304502204393043a570ff91c0579a19b36b25e236d0e7908dfd9638e3343e2ad9df2c411022100f7137d473a20e0069247cb8ea6ff1eb29a69aa3ce8ea2f48bd59de86fe4f53f40121032b6f40b5b17ec489090aa75db6f5618b183ebaa3959e964420cade4691a61455ffffffff0280fc0a00000000001976a91420737df3f7c2485d2e7ac33b3c7c4da7edc671c588ac00350c00000000001976a9148f9a3115ab2eb658a66ffa960648ba3d4b46d9b688ac00000000", true);
+		assertNotNull(transaction);
 	}
 
 	@Ignore("moves bitcoins")
@@ -746,10 +780,14 @@ public class BtcDaemonTest {
 		assertNotNull(signature);
 	}
 
-	@Test(expected = BtcException.class)
+	@Test
 	public void signRawTransaction() throws BtcException {
-		BITCOIND_WITH_LISTENER.signRawTransaction("", new ArrayList<Object>(),
-				new ArrayList<String>());
+		BITCOIND_WITHOUT_LISTENER.walletUnlock(BITCOIND_PASSWORD);
+		BtcRawTransaction transaction = BITCOIND_WITHOUT_LISTENER.signRawTransaction("0100000001f5e03b14f43058c4a677921cfe20915515b7fb0ad6e689c5d9d845c0cad6b6510000000000ffffffff0280fc0a00000000001976a91420737df3f7c2485d2e7ac33b3c7c4da7edc671c588ac00350c00000000001976a9148f9a3115ab2eb658a66ffa960648ba3d4b46d9b688ac00000000", true);
+		assertNotNull(transaction);
+		assertNotNull(transaction.getHex());
+		assertTrue(transaction.isComplete());
+		BITCOIND_WITHOUT_LISTENER.walletLock();
 	}
 
 	@Test

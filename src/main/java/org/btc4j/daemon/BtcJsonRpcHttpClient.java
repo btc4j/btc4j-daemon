@@ -74,14 +74,15 @@ import org.btc4j.core.BtcLastBlock;
 import org.btc4j.core.BtcMiningInfo;
 import org.btc4j.core.BtcMultiSignatureAddress;
 import org.btc4j.core.BtcNode;
+import org.btc4j.core.BtcOutputPart;
 import org.btc4j.core.BtcPeer;
 import org.btc4j.core.BtcRawTransaction;
 import org.btc4j.core.BtcScript;
 import org.btc4j.core.BtcTransaction;
 import org.btc4j.core.BtcTransactionDetail;
-import org.btc4j.core.BtcTransactionInput;
-import org.btc4j.core.BtcTransactionOutput;
-import org.btc4j.core.BtcTransactionOutputSet;
+import org.btc4j.core.BtcInput;
+import org.btc4j.core.BtcOutput;
+import org.btc4j.core.BtcOutputSet;
 import org.btc4j.core.BtcTransactionTemplate;
 import org.btc4j.core.BtcWork;
 
@@ -94,7 +95,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTC4J_DAEMON_JSON_CONTENT_TYPE = "application/json";
 	private static final String BTC4J_DAEMON_JSONRPC_CONTENT_TYPE = "application/json-rpc";
 	private static final String BTC4J_DAEMON_CHARSET = "UTF-8";
-	private static final int BTC4J_DAEMON_TIMEOUT = 10000;
+	private static final int BTC4J_DAEMON_TIMEOUT = 60000;
 	private static final String BTCOBJ_ACCOUNT_ACCOUNT = "account";
 	private static final String BTCOBJ_ACCOUNT_AMOUNT = "amount";
 	private static final String BTCOBJ_ACCOUNT_CONFIRMATIONS = "confirmations";
@@ -190,6 +191,7 @@ public class BtcJsonRpcHttpClient {
 	private static final String BTCOBJ_TX_LOCK_TIME = "locktime";
 	private static final String BTCOBJ_TX_INPUTS = "vin";
 	private static final String BTCOBJ_TX_OUTPUTS = "vout";
+	private static final String BTCOBJ_TX_COMPLETE = "complete";
 	private static final String BTCOBJ_TX_DETAIL_ACCOUNT = "account";
 	private static final String BTCOBJ_TX_DETAIL_ADDRESS = "address";
 	private static final String BTCOBJ_TX_DETAIL_AMOUNT = "amount";
@@ -268,7 +270,7 @@ public class BtcJsonRpcHttpClient {
 		return invoke(method, null);
 	}
 
-	public JsonValue invoke(String method, JsonValue parameters)
+	public JsonValue invoke(String method, JsonArray parameters)
 			throws BtcException {
 		if (url == null) {
 			LOG.severe(BTC4J_DAEMON_DATA_NULL_URL);
@@ -648,29 +650,30 @@ public class BtcJsonRpcHttpClient {
 				""));
 		transaction.setVersion(jsonLong(object, BTCOBJ_TX_VERSION));
 		transaction.setLockTime(jsonLong(object, BTCOBJ_TX_LOCK_TIME));
-		List<BtcTransactionInput> inputTransactions = new ArrayList<BtcTransactionInput>();
+		List<BtcInput> inputTransactions = new ArrayList<BtcInput>();
 		JsonValue inputs = object.get(BTCOBJ_TX_INPUTS);
 		if ((inputs != null) && (inputs.getValueType() == JsonValue.ValueType.ARRAY) && (inputs instanceof JsonArray)) {
 			JsonArray inputsArray = (JsonArray) inputs;
 			for (JsonValue input : inputsArray.getValuesAs(JsonValue.class)) {
-				inputTransactions.add(jsonTransactionInput(input));
+				inputTransactions.add(jsonInput(input));
 			}
 		}
-		transaction.setInputTransactions(inputTransactions);
-		List<BtcTransactionOutput> outputTransactions = new ArrayList<BtcTransactionOutput>();
+		transaction.setInputs(inputTransactions);
+		List<BtcOutput> outputTransactions = new ArrayList<BtcOutput>();
 		JsonValue outputs = object.get(BTCOBJ_TX_OUTPUTS);
 		if ((outputs != null) && (outputs.getValueType() == JsonValue.ValueType.ARRAY) && (outputs instanceof JsonArray)) {
 			JsonArray outputsArray = (JsonArray) outputs;
 			for (JsonValue output : outputsArray.getValuesAs(JsonValue.class)) {
-				outputTransactions.add(jsonTransactionOutput(output));
+				outputTransactions.add(jsonOutput(output));
 			}
 		}
-		transaction.setOutputTransactions(outputTransactions);
+		transaction.setOutputs(outputTransactions);
 		transaction.setBlockHash(object.getString(BTCOBJ_TX_BLOCK_HASH, ""));
 		transaction.setConfirmations(jsonLong(object,
 				BTCOBJ_TX_CONFIRMATIONS));
 		transaction.setTime(jsonLong(object, BTCOBJ_TX_TIME));
 		transaction.setBlockTime(jsonLong(object, BTCOBJ_TX_BLOCK_TIME));
+		transaction.setComplete(object.getBoolean(BTCOBJ_TX_COMPLETE, true));
 		return transaction;
 	}
 
@@ -747,13 +750,13 @@ public class BtcJsonRpcHttpClient {
 		return detail;
 	}
 
-	public BtcTransactionInput jsonTransactionInput(JsonValue value)
+	public BtcInput jsonInput(JsonValue value)
 			throws BtcException {
 		JsonObject object = jsonObject(value);
 		if (object == null) {
 			return null;
 		}
-		BtcTransactionInput input = new BtcTransactionInput();
+		BtcInput input = new BtcInput();
 		input.setTransaction(object.getString(BTCOBJ_TX_INPUT_TRANSACTION,
 				""));
 		input.setOutput(jsonLong(object, BTCOBJ_TX_INPUT_OUTPUT));
@@ -766,13 +769,12 @@ public class BtcJsonRpcHttpClient {
 		return input;
 	}
 
-	public BtcTransactionOutput jsonTransactionOutput(JsonValue value)
-			throws BtcException {
+	public BtcOutput jsonOutput(JsonValue value) throws BtcException {
 		JsonObject object = jsonObject(value);
 		if (object == null) {
 			return null;
 		}
-		BtcTransactionOutput output = new BtcTransactionOutput();
+		BtcOutput output = new BtcOutput();
 		output.setTransaction(object.getString(BTCOBJ_TX_OUTPUT_TRANSACTION,
 				""));
 		output.setBestBlock(object
@@ -800,20 +802,32 @@ public class BtcJsonRpcHttpClient {
 		output.setDetail(jsonTransactionDetail(object));
 		return output;
 	}
+	
+	public BtcOutputPart jsonOutputPart(JsonValue value) throws BtcException {
+		JsonObject object = jsonObject(value);
+		if (object == null) {
+			return null;
+		}
+		BtcOutput output = new BtcOutput();
+		output.setTransaction(object.getString(BTCOBJ_TX_OUTPUT_TRANSACTION,
+				""));
+		output.setOutput(jsonLong(object, BTCOBJ_TX_OUTPUT_OUTPUT));
+		return output;
+	}
 
-	public BtcTransactionOutputSet jsonTransactionOutputSet(JsonValue value)
+	public BtcOutputSet jsonOutputSet(JsonValue value)
 			throws BtcException {
 		JsonObject object = jsonObject(value);
 		if (object == null) {
 			return null;
 		}
-		BtcTransactionOutputSet output = new BtcTransactionOutputSet();
+		BtcOutputSet output = new BtcOutputSet();
 		output.setHeight(jsonLong(object, BTCOBJ_TX_OUTPUT_SET_HEIGHT));
 		output.setBestBlock(object.getString(
 				BTCOBJ_TX_OUTPUT_SET_BEST_BLOCK, ""));
 		output.setTransactions(jsonLong(object,
 				BTCOBJ_TX_OUTPUT_SET_TRANSACTIONS));
-		output.setOutputTransactions(jsonLong(object,
+		output.setOutputs(jsonLong(object,
 				BTCOBJ_TX_OUTPUT_SET_OUTPUT_TRANSACTIONS));
 		output.setBytesSerialized(jsonLong(object,
 				BTCOBJ_TX_OUTPUT_SET_BYTES_SERIALIZED));
