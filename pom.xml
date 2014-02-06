@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.btc4j</groupId>
 	<artifactId>btc4j-daemon</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -33,8 +33,8 @@
 		</license>
 	</licenses>
 	<scm>
-		<connection>scm:git:ssh://git@github.com:btc4j/btc4j-daemon.git/</connection>
-		<developerConnection>scm:git:ssh://git@github.com:btc4j/btc4j-daemon.git</developerConnection>
+		<connection>scm:git:ssh://git@github.com/btc4j/btc4j-daemon.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/btc4j/btc4j-daemon.git</developerConnection>
 		<url>https://github.com/btc4j/btc4j-daemon</url>
 		<tag>HEAD</tag>
 	</scm>
