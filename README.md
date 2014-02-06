@@ -11,6 +11,8 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 
 btc4j-daemon implements all 61 commands in bitcoind API as defined in org.btc4j.core.BtcApi. It also contains a notification component to process alerts, and block and wallet events received by bitcoind.
 
+Development status: Currently working on v0.0.4.
+
 Using btc4j-daemon
 ------------------
 btc4j-daemon is free software under [The MIT License (MIT)](http://opensource.org/licenses/MIT/ "The MIT License (MIT)"). It is maintained by Guillermo Gonzalez (ggonzalez@btc4j.org).
@@ -20,10 +22,10 @@ Maven pom.xml dependency:
 <dependency>
 	<groupId>org.btc4j</groupId>
 	<artifactId>btc4j-daemon</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 </dependency>
 ```
-or, download artifacts directly from https://github.com/btc4j/btc4j-repo/tree/master/btc4j-daemon.
+or, download artifacts directly from https://github.com/btc4j/btc4j-daemon/releases.
 
 Connect to a bitcoind process:
 ```java
