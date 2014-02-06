@@ -540,10 +540,8 @@ public class BtcDaemonTest {
 	@Ignore("needs new key")
 	@Test
 	public void importPrivateKey() throws BtcException {
-		BITCOIND_WITHOUT_LISTENER.walletUnlock(BITCOIND_PASSWORD, 300);
 		BITCOIND_WITH_LISTENER
 				.importPrivateKey(BITCOIND_PRIVATE_KEY, "", true);
-		BITCOIND_WITHOUT_LISTENER.walletLock();
 	}
 
 	@Test
@@ -782,12 +780,10 @@ public class BtcDaemonTest {
 
 	@Test
 	public void signRawTransaction() throws BtcException {
-		BITCOIND_WITHOUT_LISTENER.walletUnlock(BITCOIND_PASSWORD);
 		BtcRawTransaction transaction = BITCOIND_WITHOUT_LISTENER.signRawTransaction("0100000001f5e03b14f43058c4a677921cfe20915515b7fb0ad6e689c5d9d845c0cad6b6510000000000ffffffff0280fc0a00000000001976a91420737df3f7c2485d2e7ac33b3c7c4da7edc671c588ac00350c00000000001976a9148f9a3115ab2eb658a66ffa960648ba3d4b46d9b688ac00000000", true);
 		assertNotNull(transaction);
 		assertNotNull(transaction.getHex());
 		assertTrue(transaction.isComplete());
-		BITCOIND_WITHOUT_LISTENER.walletLock();
 	}
 
 	@Test
