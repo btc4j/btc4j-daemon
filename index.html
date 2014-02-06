@@ -44,20 +44,11 @@
 <li><a href="http://btc4j.github.io/btc4j-core">Bitcoin Java Core Components (org.btc4j.core)</a></li>
 <li><a href="http://hc.apache.org">Apache HTTP Components (org.apache.http)</a></li>
 <li><a href="http://www.oracle.com/technetwork/articles/java/json-1973242.html">Java API for Json Processing (javax.json)</a></li>
-</ul><p>bitcoind API development status (out of a total of 61 commands):</p>
+</ul><p>btc4j-daemon implements all 61 commands in bitcoind API as defined in org.btc4j.core.BtcApi. It also contains a notification component to process alerts, and block and wallet events received by bitcoind.</p>
 
-<ul>
-<li>Completed and verified: 55</li>
-<li>Need more testing: 2 (raw transaction and mining commands)</li>
-<li>Not yet implemented: 4 (raw transaction commands)</li>
-</ul><p>Notification subsystem development status:</p>
+<p>Development status: Currently working on v0.0.4.</p>
 
-<ul>
-<li>Notifier: complete</li>
-<li>Alerts: complete</li>
-<li>Block events: complete</li>
-<li>Wallet events: complete</li>
-</ul><h2>
+<h2>
 <a name="using-btc4j-daemon" class="anchor" href="#using-btc4j-daemon"><span class="octicon octicon-link"></span></a>Using btc4j-daemon</h2>
 
 <p>btc4j-daemon is free software under <a href="http://opensource.org/licenses/MIT/" title="The MIT License (MIT)">The MIT License (MIT)</a>. It is maintained by Guillermo Gonzalez (<a href="mailto:ggonzalez@btc4j.org">ggonzalez@btc4j.org</a>).</p>
@@ -67,11 +58,11 @@
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>org.btc4j<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>btc4j-daemon<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>0.0.3-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;version&gt;</span>0.0.3<span class="nt">&lt;/version&gt;</span>
 <span class="nt">&lt;/dependency&gt;</span>
 </pre></div>
 
-<p>or, download artifacts directly from <a href="https://github.com/btc4j/btc4j-repo/tree/master/btc4j-daemon">https://github.com/btc4j/btc4j-repo/tree/master/btc4j-daemon</a>.</p>
+<p>or, download artifacts directly from <a href="https://github.com/btc4j/btc4j-daemon/releases">https://github.com/btc4j/btc4j-daemon/releases</a>.</p>
 
 <p>Connect to a bitcoind process:</p>
 
