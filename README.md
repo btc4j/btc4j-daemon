@@ -35,9 +35,9 @@ BtcDaemon daemon = new BtcDaemon(new URL("https://127.0.0.1:18332"),
 BtcInfo info = daemon.getInfo();
 String address = daemon.getAccountAddress("rpcuser");
 daemon.walletPassphrase("GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj");
-daemon.sendToAddress("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", 2.5); 
+daemon.sendToAddress("mm48fadf1wJVF341ArWmtwZZGV8s34UGWD", BigDecimal.valueOf(0.72)); 
 daemon.walletLock();
-String stop = daemon.stop(); // will stop bitcoind, not required
+daemon.stop(); // will stop bitcoind, not required
 ```
 or, with notifications enabled:
 ```java
