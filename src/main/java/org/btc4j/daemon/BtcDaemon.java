@@ -64,10 +64,10 @@ import org.btc4j.core.BtcUtil;
 import org.btc4j.core.BtcWork;
 
 public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
-	private static final String BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS = "addmultisigaddress";
+	private static final String BTCAPI_ADD_MULTISIGNATURE_ADDRESS = "addmultisigaddress";
 	private static final String BTCAPI_ADD_NODE = "addnode";
 	private static final String BTCAPI_BACKUP_WALLET = "backupwallet";
-	private static final String BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS = "createmultisig";
+	private static final String BTCAPI_CREATE_MULTISIGNATURE_ADDRESS = "createmultisig";
 	private static final String BTCAPI_CREATE_RAW_TRANSACTION = "createrawtransaction";
 	private static final String BTCAPI_DECODE_RAW_TRANSACTION = "decoderawtransaction";
 	private static final String BTCAPI_DUMP_PRIVATE_KEY = "dumpprivkey";
@@ -94,11 +94,11 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_GET_RECEIVED_BY_ADDRESS = "getreceivedbyaddress";
 	private static final String BTCAPI_GET_TRANSACTION = "gettransaction";
 	private static final String BTCAPI_GET_TRANSACTION_OUTPUT = "gettxout";
-	private static final String BTCAPI_GET_TRANSACTION_OUTPUT_SET_INFORMATION = "gettxoutsetinfo";
+	private static final String BTCAPI_GET_TRANSACTION_OUTPUTSET_INFORMATION = "gettxoutsetinfo";
 	private static final String BTCAPI_GET_WORK = "getwork";
-	private static final String BTCAPI_HELP = "help";
+	private static final String BTCAPI_GET_HELP = "help";
 	private static final String BTCAPI_IMPORT_PRIVATE_KEY = "importprivkey";
-	private static final String BTCAPI_KEY_POOL_REFILL = "keypoolrefill";
+	private static final String BTCAPI_KEYPOOL_REFILL = "keypoolrefill";
 	private static final String BTCAPI_LIST_ACCOUNTS = "listaccounts";
 	private static final String BTCAPI_LIST_ADDRESS_GROUPINGS = "listaddressgroupings";
 	private static final String BTCAPI_LIST_LOCK_UNSPENT = "listlockunspent";
@@ -108,7 +108,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_LIST_TRANSACTIONS = "listtransactions";
 	private static final String BTCAPI_LIST_UNSPENT = "listunspent";
 	private static final String BTCAPI_LOCK_UNSPENT = "lockunspent";
-	private static final String BTCAPI_MOVE = "move";
+	private static final String BTCAPI_MOVE_FUNDS = "move";
 	private static final String BTCAPI_SEND_FROM = "sendfrom";
 	private static final String BTCAPI_SEND_MANY = "sendmany";
 	private static final String BTCAPI_SEND_RAW_TRANSACTION = "sendrawtransaction";
@@ -118,7 +118,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	private static final String BTCAPI_SET_TRANSACTION_FEE = "settxfee";
 	private static final String BTCAPI_SIGN_MESSAGE = "signmessage";
 	private static final String BTCAPI_SIGN_RAW_TRANSACTION = "signrawtransaction";
-	private static final String BTCAPI_STOP = "stop";
+	private static final String BTCAPI_STOP_DAEMON = "stop";
 	private static final String BTCAPI_SUBMIT_BLOCK = "submitblock";
 	private static final String BTCAPI_VALIDATE_ADDRESS = "validateaddress";
 	private static final String BTCAPI_VERIFY_MESSAGE = "verifymessage";
@@ -237,7 +237,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		JsonArray parameters = Json.createArrayBuilder().add(required)
 				.add(keysParam).add(BtcUtil.notNull(account)).build();
 		return jsonString(invoke(
-				BTCAPI_ADD_MULTI_SIGNATURE_ADDRESS, parameters));
+				BTCAPI_ADD_MULTISIGNATURE_ADDRESS, parameters));
 	}
 
 	@Override
@@ -278,7 +278,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 		JsonArray parameters = Json.createArrayBuilder().add(required)
 				.add(keysParam).build();
 		return jsonMultiSignatureAddress(invoke(
-				BTCAPI_CREATE_MULTI_SIGNATURE_ADDRESS, parameters));
+				BTCAPI_CREATE_MULTISIGNATURE_ADDRESS, parameters));
 	}
 
 	public String createRawTransaction(Map<String, BigDecimal> amounts) throws BtcException {
@@ -617,7 +617,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	@Override
 	public BtcOutputSet getTransactionOutputSetInformation()
 			throws BtcException {
-		return jsonOutputSet(invoke(BTCAPI_GET_TRANSACTION_OUTPUT_SET_INFORMATION));
+		return jsonOutputSet(invoke(BTCAPI_GET_TRANSACTION_OUTPUTSET_INFORMATION));
 	}
 
 	public BtcWork getWork() throws BtcException {
@@ -649,7 +649,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 	public String help(String command) throws BtcException {
 		JsonArray parameters = Json.createArrayBuilder()
 				.add(BtcUtil.notNull(command)).build();
-		return jsonString(invoke(BTCAPI_HELP, parameters));
+		return jsonString(invoke(BTCAPI_GET_HELP, parameters));
 	}
 
 	public void importPrivateKey(String privateKey) throws BtcException {
@@ -675,7 +675,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 
 	@Override
 	public void keyPoolRefill() throws BtcException {
-		invoke(BTCAPI_KEY_POOL_REFILL);
+		invoke(BTCAPI_KEYPOOL_REFILL);
 	}
 
 	public Map<String, BtcAccount> listAccounts() throws BtcException {
@@ -900,7 +900,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 				.add(BtcUtil.notNull(toAccount)).add(BtcUtil.notNull(amount))
 				.add(BtcUtil.atLeast(minConfirms, 1))
 				.add(BtcUtil.notNull(comment)).build();
-		return Boolean.valueOf(String.valueOf(invoke(BTCAPI_MOVE, parameters)));
+		return Boolean.valueOf(String.valueOf(invoke(BTCAPI_MOVE_FUNDS, parameters)));
 	}
 
 	public String sendFrom(String account, String address, double amount)
@@ -1076,7 +1076,7 @@ public class BtcDaemon extends BtcJsonRpcHttpClient implements BtcApi {
 
 	@Override
 	public String stop() throws BtcException {
-		return jsonString(invoke(BTCAPI_STOP));
+		return jsonString(invoke(BTCAPI_STOP_DAEMON));
 	}
 	
 	public BtcBlockSubmission submitBlock(String data)
