@@ -8,6 +8,7 @@ btc4j-daemon calls the bitcoind Json-Rpc service (Bitcoin-Qt v0.8.6) using:
 * [Bitcoin Java Core Components (org.btc4j.core)] (http://btc4j.github.io/btc4j-core)
 * [Apache HTTP Components (org.apache.http)] (http://hc.apache.org)
 * [Java API for Json Processing (javax.json)] (http://www.oracle.com/technetwork/articles/java/json-1973242.html)
+  * The Json runtime used for this project is the Glassfish reference implementation.
 
 btc4j-daemon implements all 61 commands in bitcoind API as defined in org.btc4j.core.BtcApi. It also contains a notification component to process alerts, and block and wallet events received by bitcoind.
 

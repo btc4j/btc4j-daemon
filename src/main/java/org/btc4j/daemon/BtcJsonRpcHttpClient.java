@@ -266,19 +266,15 @@ public class BtcJsonRpcHttpClient {
 				new UsernamePasswordCredentials(account, password));
 	}
 
-	public JsonValue invoke(String method) throws BtcException {
-		return invoke(method, null);
-	}
-
-	public JsonValue invoke(String method, JsonArray parameters)
-			throws BtcException {
+	public String jsonInvoke(String request) throws BtcException {
+		LOG.info("request: " + request);
+		String reply = "";
 		if (url == null) {
 			LOG.severe(BTC4J_DAEMON_DATA_NULL_URL);
 			throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 					BtcException.BTC4J_ERROR_MESSAGE + ": "
 							+ BTC4J_DAEMON_DATA_NULL_URL);
 		}
-
 		try (CloseableHttpClient client = HttpClients.custom()
 				.setDefaultCredentialsProvider(credentialsProvider)
 				.setDefaultRequestConfig(requestConfig)
@@ -286,19 +282,7 @@ public class BtcJsonRpcHttpClient {
 			HttpPost post = new HttpPost(url.toString());
 			post.addHeader(BTC4J_DAEMON_HTTP_HEADER,
 					BTC4J_DAEMON_JSONRPC_CONTENT_TYPE);
-			String guid = UUID.randomUUID().toString();
-			JsonObjectBuilder builder = Json.createObjectBuilder();
-			builder.add(JSONRPC_REALM, JSONRPC_VERSION).add(JSONRPC_METHOD,
-					method);
-			if (parameters != null) {
-				builder.add(JSONRPC_PARAMS, parameters);
-			} else {
-				builder.addNull(JSONRPC_PARAMS);
-			}
-			builder.add(JSONRPC_ID, guid);
-			JsonObject request = builder.build();
-			LOG.info("request: " + request);
-			post.setEntity(new StringEntity(request.toString(), ContentType
+			post.setEntity(new StringEntity(request, ContentType
 					.create(BTC4J_DAEMON_JSON_CONTENT_TYPE,
 							BTC4J_DAEMON_CHARSET)));
 			ResponseHandler<String> handler = new ResponseHandler<String>() {
@@ -319,23 +303,49 @@ public class BtcJsonRpcHttpClient {
 					return results;
 				}
 			};
-			JsonObject results = (JsonObject) Json.createReader(
-					new StringReader(client.execute(post, handler))).read();
-			if (results == null) {
+			reply = client.execute(post, handler);
+		} catch (IOException e) {
+			LOG.severe(String.valueOf(e));
+			throw new BtcException(BtcException.BTC4J_ERROR_CODE,
+					BtcException.BTC4J_ERROR_MESSAGE + ": " + e.getMessage(), e);
+		}
+		LOG.info("response: " + reply);	
+		return reply;
+	}
+	
+	public JsonValue invoke(String method) throws BtcException {
+		return invoke(method, null);
+	}
+
+	public JsonValue invoke(String method, JsonArray parameters)
+			throws BtcException {
+			JsonObjectBuilder builder = Json.createObjectBuilder();
+			builder.add(JSONRPC_REALM, JSONRPC_VERSION).add(JSONRPC_METHOD,
+					method);
+			if (parameters != null) {
+				builder.add(JSONRPC_PARAMS, parameters);
+			} else {
+				builder.addNull(JSONRPC_PARAMS);
+			}
+			String guid = UUID.randomUUID().toString();
+			builder.add(JSONRPC_ID, guid);
+			JsonObject request = builder.build();
+			JsonObject response = (JsonObject) Json.createReader(new StringReader(jsonInvoke(String.valueOf(request)))).read();
+			if (response == null) {
 				LOG.severe(BTC4J_DAEMON_DATA_NULL_RESPONSE);
 				throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 						BtcException.BTC4J_ERROR_MESSAGE + ": "
 								+ BTC4J_DAEMON_DATA_NULL_RESPONSE);
 			}
-			LOG.info("response: " + results);
-			JsonString id = (JsonString) results.get(JSONRPC_ID);
+			
+			JsonString id = (JsonString) response.get(JSONRPC_ID);
 			if ((id == null) || !(guid.equals(id.getString()))) {
 				LOG.severe(BTC4J_DAEMON_DATA_INVALID_ID);
 				throw new BtcException(BtcException.BTC4J_ERROR_CODE,
 						BtcException.BTC4J_ERROR_MESSAGE + ": "
 								+ BTC4J_DAEMON_DATA_INVALID_ID);
 			}
-			JsonValue error = results.get(JSONRPC_ERROR);
+			JsonValue error = response.get(JSONRPC_ERROR);
 			if ((error != null)
 					&& (error.getValueType().equals(ValueType.OBJECT))) {
 				JsonObject errorObj = (JsonObject) error;
@@ -347,12 +357,8 @@ public class BtcJsonRpcHttpClient {
 				LOG.severe("error: " + code + " " + message + dataStr);
 				throw new BtcException(code, message + dataStr);
 			}
-			return results.get(JSONRPC_RESULT);
-		} catch (IOException e) {
-			LOG.severe(String.valueOf(e));
-			throw new BtcException(BtcException.BTC4J_ERROR_CODE,
-					BtcException.BTC4J_ERROR_MESSAGE + ": " + e.getMessage(), e);
-		}
+			return response.get(JSONRPC_RESULT);
+		
 	}
 	
 	public BtcAccount jsonAccount(JsonValue value) throws BtcException {
