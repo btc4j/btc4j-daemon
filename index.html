@@ -43,7 +43,13 @@
 <ul>
 <li><a href="http://btc4j.github.io/btc4j-core">Bitcoin Java Core Components (org.btc4j.core)</a></li>
 <li><a href="http://hc.apache.org">Apache HTTP Components (org.apache.http)</a></li>
-<li><a href="http://www.oracle.com/technetwork/articles/java/json-1973242.html">Java API for Json Processing (javax.json)</a></li>
+<li>
+<a href="http://www.oracle.com/technetwork/articles/java/json-1973242.html">Java API for Json Processing (javax.json)</a>
+
+<ul>
+<li>The Json runtime used for this project is the Glassfish reference implementation.</li>
+</ul>
+</li>
 </ul><p>btc4j-daemon implements all 61 commands in bitcoind API as defined in org.btc4j.core.BtcApi. It also contains a notification component to process alerts, and block and wallet events received by bitcoind.</p>
 
 <p>Development status: Currently working on v0.0.4.</p>
@@ -72,9 +78,9 @@
 <span class="n">BtcInfo</span> <span class="n">info</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getInfo</span><span class="o">();</span>
 <span class="n">String</span> <span class="n">address</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">getAccountAddress</span><span class="o">(</span><span class="s">"rpcuser"</span><span class="o">);</span>
 <span class="n">daemon</span><span class="o">.</span><span class="na">walletPassphrase</span><span class="o">(</span><span class="s">"GBxDyFeDMYEHucz6XFRpXDDB2woCU4wi96KD9widEmsj"</span><span class="o">);</span>
-<span class="n">daemon</span><span class="o">.</span><span class="na">sendToAddress</span><span class="o">(</span><span class="s">"mm48fadf1wJVF341ArWmtwZZGV8s34UGWD"</span><span class="o">,</span> <span class="mf">2.5</span><span class="o">);</span> 
+<span class="n">daemon</span><span class="o">.</span><span class="na">sendToAddress</span><span class="o">(</span><span class="s">"mm48fadf1wJVF341ArWmtwZZGV8s34UGWD"</span><span class="o">,</span> <span class="n">BigDecimal</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="mf">0.72</span><span class="o">));</span> 
 <span class="n">daemon</span><span class="o">.</span><span class="na">walletLock</span><span class="o">();</span>
-<span class="n">String</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span> <span class="c1">// will stop bitcoind, not required</span>
+<span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span> <span class="c1">// will stop bitcoind, not required</span>
 </pre></div>
 
 <p>or, with notifications enabled:</p>
