@@ -20,15 +20,15 @@
 	</organization>
 	<developers>
 		<developer>
-			<name>Guillermo Gonzalez</name>
-			<email>ggonzalez@btc4j.org</email>
+			<name>ggbusto</name>
+			<email>ggbusto@gmx.us</email>
 		</developer>
 	</developers>
 	<licenses>
 		<license>
 			<name>The MIT License (MIT)</name>
 			<url>http://opensource.org/licenses/MIT</url>
-			<comments>Copyright (c) 2013, 2014 by Guillermo Gonzalez, btc4j.org</comments>
+			<comments>Copyright (c) 2013, 2014 by ggbusto</comments>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
