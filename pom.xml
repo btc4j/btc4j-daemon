@@ -20,15 +20,15 @@
 	</organization>
 	<developers>
 		<developer>
-			<name>ggbusto</name>
-			<email>ggbusto@gmx.us</email>
+			<name>ggbusto@gmx.com</name>
+			<email>ggbusto@gmx.com</email>
 		</developer>
 	</developers>
 	<licenses>
 		<license>
 			<name>The MIT License (MIT)</name>
 			<url>http://opensource.org/licenses/MIT</url>
-			<comments>Copyright (c) 2013, 2014 by ggbusto</comments>
+			<comments>Copyright (c) 2013, 2014 by ggbusto@gmx.com</comments>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
